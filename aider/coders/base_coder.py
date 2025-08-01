@@ -707,19 +707,20 @@ class Coder:
 
         return self.ragManager.chunk_files(self.abs_rag_fnames)
 
-    def get_rag_files_content(self, rag_query_result: QueryResult):
+    def get_rag_files_content(self, rag_query_results: list[QueryResult]):
         prompt = ""
-        chunks = rag_query_result.get("documents")
-        metadatas = rag_query_result.get("metadatas")
-        if chunks is None or metadatas is None:
-            return prompt
+        for result in rag_query_results:
+            chunks = result.get("documents")
+            metadatas = result.get("metadatas")
+            if chunks is None or metadatas is None:
+                return prompt
 
-        for i in range(len(chunks)):
-            prompt += "\n"
-            prompt += str(metadatas[0][i]["file_name"])
-            prompt += f"\n{self.fence[0]}\n"
-            prompt += chunks[0][i]
-            prompt += f"{self.fence[1]}\n"
+            for i in range(len(chunks)):
+                prompt += "\n"
+                prompt += str(metadatas[0][i]["file_name"])
+                prompt += f"\n{self.fence[0]}\n"
+                prompt += chunks[0][i]
+                prompt += f"{self.fence[1]}\n"
         return prompt
 
     def get_cur_message_text(self):
@@ -841,12 +842,12 @@ class Coder:
 
         return readonly_messages
 
-    def get_rag_file_messages(self, rag_query_result: QueryResult | None):
+    def get_rag_file_messages(self, rag_query_results: list[QueryResult] | None):
         rag_messages = []
 
-        if rag_query_result is None:
+        if rag_query_results is None:
             return rag_messages
-        rag_content = self.get_rag_files_content(rag_query_result)
+        rag_content = self.get_rag_files_content(rag_query_results)
         rag_messages += [
             dict(
                 role="user", content=self.gpt_prompts.rag_files_prefix + rag_content
@@ -1298,7 +1299,7 @@ class Coder:
 
         return prompt
 
-    def format_chat_chunks(self, rag_query_result: QueryResult | None):
+    def format_chat_chunks(self, rag_query_results: list[QueryResult] | None):
         self.choose_fence()
         main_sys = self.fmt_system_prompt(self.gpt_prompts.main_system)
         if self.main_model.system_prompt_prefix:
@@ -1355,7 +1356,8 @@ class Coder:
 
         chunks.repo = self.get_repo_messages()
         chunks.readonly_files = self.get_readonly_files_messages()
-        chunks.rag_files = self.get_rag_file_messages(rag_query_result)
+        chunks.rag_files = self.get_rag_file_messages(rag_query_results)
+        print(chunks.rag_files)
         chunks.chat_files = self.get_chat_files_messages()
 
         if self.gpt_prompts.system_reminder:
@@ -1406,8 +1408,8 @@ class Coder:
 
         return chunks
 
-    def format_messages(self, rag_query_result: QueryResult | None):
-        chunks = self.format_chat_chunks(rag_query_result)
+    def format_messages(self, rag_query_results: list[QueryResult] | None):
+        chunks = self.format_chat_chunks(rag_query_results)
         if self.add_cache_headers:
             chunks.add_cache_control_headers()
 
@@ -1501,16 +1503,16 @@ class Coder:
         rag_file_chunks = self.get_rag_files_chunks()
         if rag_file_chunks:
             self.ragManager.embed_store_chunks(all_chunks=rag_file_chunks)
-            rag_query_result = self.ragManager.embed_retrieve_query(
+            rag_query_results = self.ragManager.embed_retrieve_query(
                 query=inp, file_names=list(self.abs_rag_fnames))
         else:
-            rag_query_result = None
+            rag_query_results = None
 
         self.cur_messages += [
             dict(role="user", content=inp),
         ]
 
-        chunks = self.format_messages(rag_query_result)
+        chunks = self.format_messages(rag_query_results)
         messages = chunks.all_messages()
         if not self.check_tokens(messages):
             return
