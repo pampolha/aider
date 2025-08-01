@@ -30,7 +30,9 @@ pillow
 shtab
 oslex
 google-generativeai
-langchain
+langchain_core
+langchain_voyageai
+langchain_experimental
 chromadb
 
 # The proper dependency is networkx[default], but this brings
