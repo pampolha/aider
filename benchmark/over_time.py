@@ -133,7 +133,9 @@ class BenchmarkPlotter:
     def set_labels_and_style(self, ax: plt.Axes):
         ax.set_xlabel("Model release date", fontsize=18, color="#555")
         ax.set_ylabel(
-            "Aider code editing benchmark,\npercent completed correctly", fontsize=18, color="#555"
+            "Aider code editing benchmark,\npercent completed correctly",
+            fontsize=18,
+            color="#555",
         )
         ax.set_title("LLM code editing skill by model release date", fontsize=20)
         ax.set_ylim(30, 90)

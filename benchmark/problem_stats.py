@@ -84,7 +84,9 @@ def analyze_exercise_solutions(dirs=None, topn=None, copy_hard_set=False):
             # Calculate pass rate for sorting when using custom dirs
             if dirs is not None:
                 pass_rate = sum(
-                    1 for r in results if r.get("tests_outcomes", []) and r["tests_outcomes"][-1]
+                    1
+                    for r in results
+                    if r.get("tests_outcomes", []) and r["tests_outcomes"][-1]
                 ) / len(results)
             else:
                 # Use existing pass rate from leaderboard
@@ -117,7 +119,10 @@ def analyze_exercise_solutions(dirs=None, topn=None, copy_hard_set=False):
                 try:
                     all_exercises.add(result["testcase"] + "/" + result["language"])
                 except KeyError:
-                    print(f"Warning: Missing testcase in {dirname}", json.dumps(result, indent=4))
+                    print(
+                        f"Warning: Missing testcase in {dirname}",
+                        json.dumps(result, indent=4),
+                    )
 
     for (dirname, model), results, _ in valid_entries:
         if not results:
@@ -172,15 +177,21 @@ def analyze_exercise_solutions(dirs=None, topn=None, copy_hard_set=False):
     )  # -x[2] for descending solve rate, x[1] for ascending exercise name
 
     # Calculate max lengths for alignment after cleaning up paths
-    max_name_len = max(len(f"{lang}/{testcase}") for lang, testcase, _, _ in exercise_stats)
+    max_name_len = max(
+        len(f"{lang}/{testcase}") for lang, testcase, _, _ in exercise_stats
+    )
 
     # Print all exercises sorted by solve rate
     print("\nAll Exercises (sorted by solve rate):")
     for i, (lang, testcase, num_solved, percent) in enumerate(exercise_stats, 1):
-        print(f"{i:>3}. {testcase:<{max_name_len}} : {num_solved:>3} solved ({percent:>5.1f}%)")
+        print(
+            f"{i:>3}. {testcase:<{max_name_len}} : {num_solved:>3} solved ({percent:>5.1f}%)"
+        )
 
     print("\nSummary:")
-    solved_at_least_once = len([ex for ex, models in exercise_solutions.items() if models])
+    solved_at_least_once = len(
+        [ex for ex, models in exercise_solutions.items() if models]
+    )
     solved_by_none = never_solved
     solved_by_all = len(
         [ex for ex, models in exercise_solutions.items() if len(models) == total_models]
@@ -226,7 +237,9 @@ def analyze_exercise_solutions(dirs=None, topn=None, copy_hard_set=False):
 
     # Find exercises to disqualify based on parse error threshold
     disqualified_exercises = {
-        exercise for exercise, count in parse_error_counts.items() if count >= PARSE_ERROR_M
+        exercise
+        for exercise, count in parse_error_counts.items()
+        if count >= PARSE_ERROR_M
     }
 
     if disqualified_exercises:
@@ -261,7 +274,9 @@ def analyze_exercise_solutions(dirs=None, topn=None, copy_hard_set=False):
             lang_hard_set[lang] += 1
 
     print("\nUnsolved and hard set problems by language:")
-    print(f"{'Language':<12} {'Unsolved':>8} {'Hard Set':>9} {'Total':>7} {'%hardUnsolved':>8}")
+    print(
+        f"{'Language':<12} {'Unsolved':>8} {'Hard Set':>9} {'Total':>7} {'%hardUnsolved':>8}"
+    )
     print("-" * 47)
     for lang in sorted(lang_totals.keys()):
         count = lang_unsolved[lang]
@@ -341,9 +356,13 @@ def analyze_exercise_solutions(dirs=None, topn=None, copy_hard_set=False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--topn", type=int, help="Only consider top N models by pass rate")
     parser.add_argument(
-        "dirs", nargs="*", help="Directories to analyze (optional, defaults to leaderboard entries)"
+        "--topn", type=int, help="Only consider top N models by pass rate"
+    )
+    parser.add_argument(
+        "dirs",
+        nargs="*",
+        help="Directories to analyze (optional, defaults to leaderboard entries)",
     )
     parser.add_argument(
         "--copy-hard-set",
@@ -352,4 +371,6 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    analyze_exercise_solutions(args.dirs if args.dirs else None, args.topn, args.copy_hard_set)
+    analyze_exercise_solutions(
+        args.dirs if args.dirs else None, args.topn, args.copy_hard_set
+    )

@@ -18,7 +18,8 @@ class TestInputOutput(unittest.TestCase):
         for ending in ["platform", "lf", "crlf"]:
             io = InputOutput(line_endings=ending)
             self.assertEqual(
-                io.newline, None if ending == "platform" else "\n" if ending == "lf" else "\r\n"
+                io.newline,
+                None if ending == "platform" else "\n" if ending == "lf" else "\r\n",
             )
 
         # Test invalid line endings
@@ -59,7 +60,9 @@ class TestInputOutput(unittest.TestCase):
         self.assertEqual(io.tool_error_color, "red")
 
         # Test with pretty=False (should not modify colors)
-        io = InputOutput(user_input_color="00cc00", tool_error_color="FF2222", pretty=False)
+        io = InputOutput(
+            user_input_color="00cc00", tool_error_color="FF2222", pretty=False
+        )
 
         self.assertIsNone(io.user_input_color)
         self.assertIsNone(io.tool_error_color)
@@ -76,7 +79,11 @@ class TestInputOutput(unittest.TestCase):
         commands = MagicMock()
         commands.get_commands.return_value = ["/help", "/add", "/drop"]
         commands.matching_commands.side_effect = lambda inp: (
-            [cmd for cmd in commands.get_commands() if cmd.startswith(inp.strip().split()[0])],
+            [
+                cmd
+                for cmd in commands.get_commands()
+                if cmd.startswith(inp.strip().split()[0])
+            ],
             inp.strip().split()[0],
             " ".join(inp.strip().split()[1:]),
         )
@@ -132,7 +139,9 @@ class TestInputOutput(unittest.TestCase):
         rel_fnames = ["non_existent_file.txt"]
         addable_rel_fnames = []
         commands = None
-        autocompleter = AutoCompleter(root, rel_fnames, addable_rel_fnames, commands, "utf-8")
+        autocompleter = AutoCompleter(
+            root, rel_fnames, addable_rel_fnames, commands, "utf-8"
+        )
         self.assertEqual(autocompleter.words, set(rel_fnames))
 
     def test_autocompleter_with_unicode_file(self):
@@ -142,26 +151,38 @@ class TestInputOutput(unittest.TestCase):
             rel_fnames = [fname]
             addable_rel_fnames = []
             commands = None
-            autocompleter = AutoCompleter(root, rel_fnames, addable_rel_fnames, commands, "utf-8")
+            autocompleter = AutoCompleter(
+                root, rel_fnames, addable_rel_fnames, commands, "utf-8"
+            )
             self.assertEqual(autocompleter.words, set(rel_fnames))
 
             Path(fname).write_text("def hello(): pass\n")
-            autocompleter = AutoCompleter(root, rel_fnames, addable_rel_fnames, commands, "utf-8")
+            autocompleter = AutoCompleter(
+                root, rel_fnames, addable_rel_fnames, commands, "utf-8"
+            )
             autocompleter.tokenize()
             dump(autocompleter.words)
-            self.assertEqual(autocompleter.words, set(rel_fnames + [("hello", "`hello`")]))
+            self.assertEqual(
+                autocompleter.words, set(rel_fnames + [("hello", "`hello`")])
+            )
 
             encoding = "utf-16"
-            some_content_which_will_error_if_read_with_encoding_utf8 = "ÅÍÎÏ".encode(encoding)
+            some_content_which_will_error_if_read_with_encoding_utf8 = "ÅÍÎÏ".encode(
+                encoding
+            )
             with open(fname, "wb") as f:
                 f.write(some_content_which_will_error_if_read_with_encoding_utf8)
 
-            autocompleter = AutoCompleter(root, rel_fnames, addable_rel_fnames, commands, "utf-8")
+            autocompleter = AutoCompleter(
+                root, rel_fnames, addable_rel_fnames, commands, "utf-8"
+            )
             self.assertEqual(autocompleter.words, set(rel_fnames))
 
     @patch("builtins.input", return_value="test input")
     def test_get_input_is_a_directory_error(self, mock_input):
-        io = InputOutput(pretty=False, fancy_input=False)  # Windows tests throw UnicodeDecodeError
+        io = InputOutput(
+            pretty=False, fancy_input=False
+        )  # Windows tests throw UnicodeDecodeError
         root = "/"
         rel_fnames = ["existing_file.txt"]
         addable_rel_fnames = ["new_file.txt"]
@@ -240,7 +261,9 @@ class TestInputOutput(unittest.TestCase):
         # Test case 5: explicit_yes_required=True, should not offer 'All' option
         group.preference = None
         mock_input.return_value = "y"
-        result = io.confirm_ask("Are you sure?", group=group, explicit_yes_required=True)
+        result = io.confirm_ask(
+            "Are you sure?", group=group, explicit_yes_required=True
+        )
         self.assertTrue(result)
         self.assertIsNone(group.preference)
         mock_input.assert_called_once()
@@ -322,14 +345,18 @@ class TestInputOutput(unittest.TestCase):
         # Test with subject parameter
         mock_input.reset_mock()
         mock_input.side_effect = ["d"]
-        result = io.confirm_ask("Confirm action?", subject="Subject Text", allow_never=True)
+        result = io.confirm_ask(
+            "Confirm action?", subject="Subject Text", allow_never=True
+        )
         self.assertFalse(result)
         mock_input.assert_called_once()
         self.assertIn(("Confirm action?", "Subject Text"), io.never_prompts)
 
         # Subsequent call with the same question and subject
         mock_input.reset_mock()
-        result = io.confirm_ask("Confirm action?", subject="Subject Text", allow_never=True)
+        result = io.confirm_ask(
+            "Confirm action?", subject="Subject Text", allow_never=True
+        )
         self.assertFalse(result)
         mock_input.assert_not_called()
 
@@ -371,7 +398,10 @@ class TestInputOutputMultilineMode(unittest.TestCase):
         # Mock console.print to capture the output
         with patch.object(io.console, "print") as mock_print:
             # First call will raise UnicodeEncodeError
-            mock_print.side_effect = [UnicodeEncodeError("utf-8", "", 0, 1, "invalid"), None]
+            mock_print.side_effect = [
+                UnicodeEncodeError("utf-8", "", 0, 1, "invalid"),
+                None,
+            ]
 
             io._tool_message(invalid_unicode)
 
@@ -553,7 +583,9 @@ class TestInputOutputFormatFiles(unittest.TestCase):
 
         # Mock path functions to ensure rel_path is chosen by the shortener logic
         mock_join.side_effect = lambda *args: "/".join(args)
-        mock_abspath.side_effect = lambda p: "/ABS_PREFIX_VERY_LONG/" + os.path.normpath(p)
+        mock_abspath.side_effect = (
+            lambda p: "/ABS_PREFIX_VERY_LONG/" + os.path.normpath(p)
+        )
 
         rel_read_only_fnames = ["ro1.txt", "ro[markup].txt"]
         # When all files in chat are read-only
@@ -582,7 +614,9 @@ class TestInputOutputFormatFiles(unittest.TestCase):
         io = InputOutput(pretty=True, root="test_root")
 
         mock_join.side_effect = lambda *args: "/".join(args)
-        mock_abspath.side_effect = lambda p: "/ABS_PREFIX_VERY_LONG/" + os.path.normpath(p)
+        mock_abspath.side_effect = (
+            lambda p: "/ABS_PREFIX_VERY_LONG/" + os.path.normpath(p)
+        )
 
         rel_fnames = ["edit1.txt", "edit[markup].txt", "ro1.txt", "ro[markup].txt"]
         rel_read_only_fnames = ["ro1.txt", "ro[markup].txt"]
@@ -602,7 +636,8 @@ class TestInputOutputFormatFiles(unittest.TestCase):
         args_ed, _ = mock_columns.call_args_list[2]
         renderables_ed = args_ed[0]
         self.assertEqual(
-            renderables_ed, [Text("Editable:"), Text("edit1.txt"), Text("edit[markup].txt")]
+            renderables_ed,
+            [Text("Editable:"), Text("edit1.txt"), Text("edit[markup].txt")],
         )
 
 

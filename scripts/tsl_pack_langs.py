@@ -41,7 +41,9 @@ def try_download_tags(owner, repo, branch, directory, output_path):
 
 def main():
     # Path to the language definitions file
-    lang_def_path = "../../tmp/tree-sitter-language-pack/sources/language_definitions.json"
+    lang_def_path = (
+        "../../tmp/tree-sitter-language-pack/sources/language_definitions.json"
+    )
 
     # Path to store the tags.scm files
     output_dir = "aider/queries/tree-sitter-language-pack"

@@ -21,7 +21,9 @@ class TestSendChat(unittest.TestCase):
 
     @patch("litellm.completion")
     @patch("builtins.print")
-    def test_simple_send_with_retries_rate_limit_error(self, mock_print, mock_completion):
+    def test_simple_send_with_retries_rate_limit_error(
+        self, mock_print, mock_completion
+    ):
         mock = MagicMock()
         mock.status_code = 500
 

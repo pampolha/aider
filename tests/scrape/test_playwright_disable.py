@@ -87,7 +87,9 @@ def test_commands_web_disable_playwright(monkeypatch):
     class DummyCoder:
         def __init__(self):
             self.cur_messages = []
-            self.main_model = type("M", (), {"edit_format": "code", "name": "dummy", "info": {}})
+            self.main_model = type(
+                "M", (), {"edit_format": "code", "name": "dummy", "info": {}}
+            )
 
         def get_rel_fname(self, fname):
             return fname
@@ -105,7 +107,9 @@ def test_commands_web_disable_playwright(monkeypatch):
             return []
 
         def format_chat_chunks(self):
-            return type("Chunks", (), {"repo": [], "readonly_files": [], "chat_files": []})()
+            return type(
+                "Chunks", (), {"repo": [], "readonly_files": [], "chat_files": []}
+            )()
 
         def event(self, *a, **k):
             pass

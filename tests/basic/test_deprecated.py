@@ -50,7 +50,9 @@ class TestDeprecated(TestCase):
 
             with patch("aider.models.Model"), self.subTest(flag=flag):
                 main(
-                    [flag, "--no-git", "--exit", "--yes"], input=DummyInput(), output=DummyOutput()
+                    [flag, "--no-git", "--exit", "--yes"],
+                    input=DummyInput(),
+                    output=DummyOutput(),
                 )
 
                 # Look for the deprecation warning in all calls
@@ -80,13 +82,18 @@ class TestDeprecated(TestCase):
         with patch("aider.models.MODEL_ALIASES", {"gpt4": "gpt-4-0613"}):
             with patch("aider.models.Model"):
                 main(
-                    ["--4", "--no-git", "--exit", "--yes"], input=DummyInput(), output=DummyOutput()
+                    ["--4", "--no-git", "--exit", "--yes"],
+                    input=DummyInput(),
+                    output=DummyOutput(),
                 )
 
                 # Look for the deprecation warning in all calls
                 deprecation_warning = None
                 for call_args in mock_tool_warning.call_args_list:
-                    if "deprecated" in call_args[0][0] and "--model gpt4" in call_args[0][0]:
+                    if (
+                        "deprecated" in call_args[0][0]
+                        and "--model gpt4" in call_args[0][0]
+                    ):
                         deprecation_warning = call_args[0][0]
                         break
 

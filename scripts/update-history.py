@@ -77,7 +77,9 @@ def main():
         raise ValueError(f"Could not find version header: {version_header}")
 
     # Find the next version header after this one
-    next_version_idx = history_content.find("\n### Aider v", version_idx + len(version_header))
+    next_version_idx = history_content.find(
+        "\n### Aider v", version_idx + len(version_header)
+    )
     if next_version_idx == -1:
         # No next version found, use the rest of the file
         relevant_history = history_content[start_idx:]
@@ -90,7 +92,9 @@ def main():
         tmp_log.write(log_content)
         log_path = tmp_log.name
 
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".diff") as tmp_diff:
+    with tempfile.NamedTemporaryFile(
+        mode="w", delete=False, suffix=".diff"
+    ) as tmp_diff:
         tmp_diff.write(diff_content)
         diff_path = tmp_diff.name
 
@@ -104,8 +108,12 @@ def main():
     print(f"Lines in {diff_path}: {len(diff_content.splitlines())}")
 
     # Run blame to get aider percentage
-    blame_result = subprocess.run(["python3", "scripts/blame.py"], capture_output=True, text=True)
-    aider_line = blame_result.stdout.strip().split("\n")[-1]  # Get last line with percentage
+    blame_result = subprocess.run(
+        ["python3", "scripts/blame.py"], capture_output=True, text=True
+    )
+    aider_line = blame_result.stdout.strip().split("\n")[
+        -1
+    ]  # Get last line with percentage
 
     # Construct and run the aider command
     message = history_prompt.format(aider_line=aider_line)
@@ -139,7 +147,9 @@ def main():
         full_history = (
             history_content[:start_idx]
             + updated_history  # Keep unchanged header
-            + history_content[next_version_idx:]  # Add updated portion  # Keep older entries
+            + history_content[
+                next_version_idx:
+            ]  # Add updated portion  # Keep older entries
         )
 
     # Write back the full history

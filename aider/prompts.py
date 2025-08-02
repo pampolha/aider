@@ -28,9 +28,7 @@ undo_command_reply = (
     " why the changes were reverted."
 )
 
-added_files = (
-    "I added these files to the chat: {fnames}\nLet me know if there are others we should add."
-)
+added_files = "I added these files to the chat: {fnames}\nLet me know if there are others we should add."
 
 
 run_output = """I ran this command:

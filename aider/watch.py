@@ -70,7 +70,9 @@ class FileWatcher:
         r"(?:#|//|--|;+) *(ai\b.*|ai\b.*|.*\bai[?!]?) *$", re.IGNORECASE
     )
 
-    def __init__(self, coder, gitignores=None, verbose=False, analytics=None, root=None):
+    def __init__(
+        self, coder, gitignores=None, verbose=False, analytics=None, root=None
+    ):
         self.coder = coder
         self.io = coder.io
         self.root = Path(root) if root else Path(coder.root)
@@ -105,7 +107,9 @@ class FileWatcher:
             return False
 
         # Check file size before reading content
-        if path_abs.is_file() and path_abs.stat().st_size > 1 * 1024 * 1024:  # 1MB limit
+        if (
+            path_abs.is_file() and path_abs.stat().st_size > 1 * 1024 * 1024
+        ):  # 1MB limit
             return False
 
         if self.verbose:
@@ -125,7 +129,8 @@ class FileWatcher:
                 str(path)
                 for path in self.root.iterdir()
                 if not self.gitignore_spec.match_file(
-                    path.relative_to(self.root).as_posix() + ("/" if path.is_dir() else "")
+                    path.relative_to(self.root).as_posix()
+                    + ("/" if path.is_dir() else "")
                 )
             ]
             # Fallback to watching root if all top-level items are filtered out
@@ -270,7 +275,9 @@ class FileWatcher:
                     line_nums.append(i)
                     comments.append(comment)
                     comment = comment.lower()
-                    comment = comment.lstrip("/#-;")  # Added semicolon for Lisp comments
+                    comment = comment.lstrip(
+                        "/#-;"
+                    )  # Added semicolon for Lisp comments
                     comment = comment.strip()
                     if comment.startswith("ai!") or comment.endswith("ai!"):
                         has_action = "!"

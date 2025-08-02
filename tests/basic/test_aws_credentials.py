@@ -148,7 +148,11 @@ class TestAWSCredentials:
             with patch("aider.llm.litellm.validate_environment") as mock_validate:
                 # Mock the litellm validate_environment to return missing AWS keys and another key
                 mock_validate.return_value = {
-                    "missing_keys": ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "ANOTHER_KEY"],
+                    "missing_keys": [
+                        "AWS_ACCESS_KEY_ID",
+                        "AWS_SECRET_ACCESS_KEY",
+                        "ANOTHER_KEY",
+                    ],
                     "keys_in_environment": False,
                 }
 

@@ -14,7 +14,9 @@ class ArchitectCoder(AskCoder):
         if not content or not content.strip():
             return
 
-        if not self.auto_accept_architect and not self.io.confirm_ask("Edit the files?"):
+        if not self.auto_accept_architect and not self.io.confirm_ask(
+            "Edit the files?"
+        ):
             return
 
         kwargs = dict()

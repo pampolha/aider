@@ -6,6 +6,7 @@ This module keeps a local cached copy of the OpenRouter model list
 helper class that returns metadata for a given model in a format compatible
 with litellm’s ``get_model_info``.
 """
+
 from __future__ import annotations
 
 import json
@@ -62,7 +63,10 @@ class OpenRouterModelManager:
         if ":" in route:
             candidates.add(route.split(":", 1)[0])
 
-        record = next((item for item in self.content["data"] if item.get("id") in candidates), None)
+        record = next(
+            (item for item in self.content["data"] if item.get("id") in candidates),
+            None,
+        )
         if not record:
             return {}
 

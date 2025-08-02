@@ -27,7 +27,11 @@ def embed_font():
     """Returns base64 encoded font data for the GlassTTYVT220 font."""
     # Path to the font file
     font_path = (
-        Path(__file__).parent.parent / "aider" / "website" / "assets" / "Glass_TTY_VT220.ttf"
+        Path(__file__).parent.parent
+        / "aider"
+        / "website"
+        / "assets"
+        / "Glass_TTY_VT220.ttf"
     )
 
     # If font file doesn't exist, return empty string
@@ -46,7 +50,15 @@ def embed_font():
 def generate_confetti(count=150, width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT):
     """Generate SVG confetti elements for the celebration."""
     confetti = []
-    colors = [AIDER_GREEN, AIDER_BLUE, GOLD_COLOR, "#e74c3c", "#9b59b6", "#3498db", "#2ecc71"]
+    colors = [
+        AIDER_GREEN,
+        AIDER_BLUE,
+        GOLD_COLOR,
+        "#e74c3c",
+        "#9b59b6",
+        "#3498db",
+        "#2ecc71",
+    ]
 
     # Define text safe zones
     # Main content safe zone (centered area)
@@ -74,7 +86,8 @@ def generate_confetti(count=150, width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT):
 
         # Skip if the position is in either of the safe zones
         if (
-            (safe_zone_x_min < x < safe_zone_x_max) and (safe_zone_y_min < y < safe_zone_y_max)
+            (safe_zone_x_min < x < safe_zone_x_max)
+            and (safe_zone_y_min < y < safe_zone_y_max)
         ) or (
             (footer_safe_zone_x_min < x < footer_safe_zone_x_max)
             and (footer_safe_zone_y_min < y < footer_safe_zone_y_max)
@@ -93,12 +106,12 @@ def generate_confetti(count=150, width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT):
 
         if shape_type == "rect":
             shape = f"""<rect x="{x}" y="{y}" width="{size}" height="{size}" fill="{color}"
-                    transform="rotate({rotation}, {x + size/2}, {y + size/2})">
+                    transform="rotate({rotation}, {x + size / 2}, {y + size / 2})">
                 <animate attributeName="opacity" from="1" to="0" dur="{duration}s" begin="{delay}s" repeatCount="indefinite" />
                 <animate attributeName="y" from="{y}" to="{y + random.randint(200, 400)}" dur="{duration}s" begin="{delay}s" repeatCount="indefinite" />
             </rect>"""
         elif shape_type == "circle":
-            shape = f"""<circle cx="{x}" cy="{y}" r="{size/2}" fill="{color}">
+            shape = f"""<circle cx="{x}" cy="{y}" r="{size / 2}" fill="{color}">
                 <animate attributeName="opacity" from="1" to="0" dur="{duration}s" begin="{delay}s" repeatCount="indefinite" />
                 <animate attributeName="cy" from="{y}" to="{y + random.randint(200, 400)}" dur="{duration}s" begin="{delay}s" repeatCount="indefinite" />
             </circle>"""
@@ -121,7 +134,7 @@ def generate_confetti(count=150, width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT):
             shape = f"""<polygon points="{points_str}" fill="{color}"
                     transform="rotate({rotation}, {x}, {y})">
                 <animate attributeName="opacity" from="1" to="0" dur="{duration}s" begin="{delay}s" repeatCount="indefinite" />
-                <animate attributeName="transform" from="rotate({rotation}, {x}, {y})" to="rotate({rotation + 360}, {x}, {y})" dur="{duration*2}s" begin="{delay}s" repeatCount="indefinite" />
+                <animate attributeName="transform" from="rotate({rotation}, {x}, {y})" to="rotate({rotation + 360}, {x}, {y})" dur="{duration * 2}s" begin="{delay}s" repeatCount="indefinite" />
                 <animate attributeName="cy" from="{y}" to="{y + random.randint(200, 400)}" dur="{duration}s" begin="{delay}s" repeatCount="indefinite" />
             </polygon>"""
 
@@ -130,19 +143,25 @@ def generate_confetti(count=150, width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT):
     return "\n".join(confetti)
 
 
-def generate_celebration_svg(output_path=None, width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT):
+def generate_celebration_svg(
+    output_path=None, width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT
+):
     """Generate a celebratory SVG for 30K GitHub stars."""
 
     # Font embedding
     font_data = embed_font()
-    font_face = f"""
+    font_face = (
+        f"""
     @font-face {{
         font-family: 'GlassTTYVT220';
         src: url(data:font/truetype;charset=utf-8;base64,{font_data}) format('truetype');
         font-weight: normal;
         font-style: normal;
     }}
-    """ if font_data else ""
+    """
+        if font_data
+        else ""
+    )
 
     # Generate confetti elements
     confetti = generate_confetti(count=150, width=width, height=height)
@@ -186,10 +205,10 @@ def generate_celebration_svg(output_path=None, width=DEFAULT_WIDTH, height=DEFAU
     {confetti}
 
     <!-- Main content -->
-    <text x="{width/2}" y="{height/2 - 100}" class="aider-logo">aider</text>
-    <text x="{width/2}" y="{height/2 + 20}" class="stars-text">30,000 GitHub stars!</text>
-    <text x="{width/2}" y="{height/2 + 100}" class="tagline">Thank you to our amazing community!</text>
-    <text x="{width/2}" y="{height - 50}" class="footer">github.com/Aider-AI/aider</text>
+    <text x="{width / 2}" y="{height / 2 - 100}" class="aider-logo">aider</text>
+    <text x="{width / 2}" y="{height / 2 + 20}" class="stars-text">30,000 GitHub stars!</text>
+    <text x="{width / 2}" y="{height / 2 + 100}" class="tagline">Thank you to our amazing community!</text>
+    <text x="{width / 2}" y="{height - 50}" class="footer">github.com/Aider-AI/aider</text>
 
   </g>
 </svg>

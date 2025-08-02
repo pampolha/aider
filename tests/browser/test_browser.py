@@ -26,7 +26,8 @@ class TestBrowser(unittest.TestCase):
 
         # Assert that streamlit was successfully imported
         self.assertTrue(
-            streamlit_imported, "Streamlit should be importable after running with --browser flag"
+            streamlit_imported,
+            "Streamlit should be importable after running with --browser flag",
         )
 
 

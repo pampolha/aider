@@ -131,36 +131,42 @@ def test_ai_comment_pattern():
         f"Expected {py_expected} unique AI comments in Python fixture, found"
         f" {len(unique_py_comments)}"
     )
-    assert py_has_bang == "!", "Expected at least one bang (!) comment in Python fixture"
+    assert py_has_bang == "!", (
+        "Expected at least one bang (!) comment in Python fixture"
+    )
 
     # Test JavaScript fixture
     js_path = fixtures_dir / "watch.js"
     js_lines, js_comments, js_has_bang = watcher.get_ai_comments(str(js_path))
     js_expected = 16
-    assert (
-        len(js_lines) == js_expected
-    ), f"Expected {js_expected} AI comments in JavaScript fixture, found {len(js_lines)}"
-    assert js_has_bang == "!", "Expected at least one bang (!) comment in JavaScript fixture"
+    assert len(js_lines) == js_expected, (
+        f"Expected {js_expected} AI comments in JavaScript fixture, found {len(js_lines)}"
+    )
+    assert js_has_bang == "!", (
+        "Expected at least one bang (!) comment in JavaScript fixture"
+    )
 
     # Test watch_question.js fixture
     question_js_path = fixtures_dir / "watch_question.js"
-    question_js_lines, question_js_comments, question_js_has_bang = watcher.get_ai_comments(
-        str(question_js_path)
+    question_js_lines, question_js_comments, question_js_has_bang = (
+        watcher.get_ai_comments(str(question_js_path))
     )
     question_js_expected = 6
     assert len(question_js_lines) == question_js_expected, (
         f"Expected {question_js_expected} AI comments in watch_question.js fixture, found"
         f" {len(question_js_lines)}"
     )
-    assert (
-        question_js_has_bang == "?"
-    ), "Expected at least one bang (!) comment in watch_question.js fixture"
+    assert question_js_has_bang == "?", (
+        "Expected at least one bang (!) comment in watch_question.js fixture"
+    )
 
     # Test Lisp fixture
     lisp_path = fixtures_dir / "watch.lisp"
     lisp_lines, lisp_comments, lisp_has_bang = watcher.get_ai_comments(str(lisp_path))
     lisp_expected = 7
-    assert (
-        len(lisp_lines) == lisp_expected
-    ), f"Expected {lisp_expected} AI comments in Lisp fixture, found {len(lisp_lines)}"
-    assert lisp_has_bang == "!", "Expected at least one bang (!) comment in Lisp fixture"
+    assert len(lisp_lines) == lisp_expected, (
+        f"Expected {lisp_expected} AI comments in Lisp fixture, found {len(lisp_lines)}"
+    )
+    assert lisp_has_bang == "!", (
+        "Expected at least one bang (!) comment in Lisp fixture"
+    )

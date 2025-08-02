@@ -89,18 +89,26 @@ class TestOnboarding(unittest.TestCase):
         self.assertIsNone(try_to_select_default_model())
         mock_check_tier.assert_not_called()
 
-    @patch("aider.onboarding.check_openrouter_tier", return_value=True)  # Assume free tier
+    @patch(
+        "aider.onboarding.check_openrouter_tier", return_value=True
+    )  # Assume free tier
     @patch.dict(os.environ, {"OPENROUTER_API_KEY": "or_key"}, clear=True)
     def test_try_select_default_model_openrouter_free(self, mock_check_tier):
         """Test OpenRouter free model selection."""
-        self.assertEqual(try_to_select_default_model(), "openrouter/deepseek/deepseek-r1:free")
+        self.assertEqual(
+            try_to_select_default_model(), "openrouter/deepseek/deepseek-r1:free"
+        )
         mock_check_tier.assert_called_once_with("or_key")
 
-    @patch("aider.onboarding.check_openrouter_tier", return_value=False)  # Assume paid tier
+    @patch(
+        "aider.onboarding.check_openrouter_tier", return_value=False
+    )  # Assume paid tier
     @patch.dict(os.environ, {"OPENROUTER_API_KEY": "or_key"}, clear=True)
     def test_try_select_default_model_openrouter_paid(self, mock_check_tier):
         """Test OpenRouter paid model selection."""
-        self.assertEqual(try_to_select_default_model(), "openrouter/anthropic/claude-sonnet-4")
+        self.assertEqual(
+            try_to_select_default_model(), "openrouter/anthropic/claude-sonnet-4"
+        )
         mock_check_tier.assert_called_once_with("or_key")
 
     @patch("aider.onboarding.check_openrouter_tier")
@@ -128,27 +136,39 @@ class TestOnboarding(unittest.TestCase):
     @patch.dict(os.environ, {"GEMINI_API_KEY": "gm_key"}, clear=True)
     def test_try_select_default_model_gemini(self, mock_check_tier):
         """Test Gemini model selection."""
-        self.assertEqual(try_to_select_default_model(), "gemini/gemini-2.5-pro-exp-03-25")
+        self.assertEqual(
+            try_to_select_default_model(), "gemini/gemini-2.5-pro-exp-03-25"
+        )
         mock_check_tier.assert_not_called()
 
     @patch("aider.onboarding.check_openrouter_tier")
     @patch.dict(os.environ, {"VERTEXAI_PROJECT": "vx_proj"}, clear=True)
     def test_try_select_default_model_vertex(self, mock_check_tier):
         """Test Vertex AI model selection."""
-        self.assertEqual(try_to_select_default_model(), "vertex_ai/gemini-2.5-pro-exp-03-25")
+        self.assertEqual(
+            try_to_select_default_model(), "vertex_ai/gemini-2.5-pro-exp-03-25"
+        )
         mock_check_tier.assert_not_called()
 
     @patch("aider.onboarding.check_openrouter_tier", return_value=False)  # Paid
     @patch.dict(
-        os.environ, {"OPENROUTER_API_KEY": "or_key", "OPENAI_API_KEY": "oa_key"}, clear=True
+        os.environ,
+        {"OPENROUTER_API_KEY": "or_key", "OPENAI_API_KEY": "oa_key"},
+        clear=True,
     )
     def test_try_select_default_model_priority_openrouter(self, mock_check_tier):
         """Test OpenRouter key takes priority."""
-        self.assertEqual(try_to_select_default_model(), "openrouter/anthropic/claude-sonnet-4")
+        self.assertEqual(
+            try_to_select_default_model(), "openrouter/anthropic/claude-sonnet-4"
+        )
         mock_check_tier.assert_called_once_with("or_key")
 
     @patch("aider.onboarding.check_openrouter_tier")
-    @patch.dict(os.environ, {"ANTHROPIC_API_KEY": "an_key", "OPENAI_API_KEY": "oa_key"}, clear=True)
+    @patch.dict(
+        os.environ,
+        {"ANTHROPIC_API_KEY": "an_key", "OPENAI_API_KEY": "oa_key"},
+        clear=True,
+    )
     def test_try_select_default_model_priority_anthropic(self, mock_check_tier):
         """Test Anthropic key takes priority over OpenAI."""
         self.assertEqual(try_to_select_default_model(), "sonnet")
@@ -158,7 +178,9 @@ class TestOnboarding(unittest.TestCase):
     def test_find_available_port_success(self, mock_tcp_server):
         """Test finding an available port."""
         # Simulate port 8484 being available
-        mock_tcp_server.return_value.__enter__.return_value = None  # Allow context manager
+        mock_tcp_server.return_value.__enter__.return_value = (
+            None  # Allow context manager
+        )
         port = find_available_port(start_port=8484, end_port=8484)
         self.assertEqual(port, 8484)
         mock_tcp_server.assert_called_once_with(("localhost", 8484), None)
@@ -168,7 +190,9 @@ class TestOnboarding(unittest.TestCase):
         """Test finding the next available port if the first is in use."""
         # Simulate port 8484 raising OSError, 8485 being available
         mock_tcp_server.side_effect = [OSError, MagicMock()]
-        mock_tcp_server.return_value.__enter__.return_value = None  # Allow context manager
+        mock_tcp_server.return_value.__enter__.return_value = (
+            None  # Allow context manager
+        )
         port = find_available_port(start_port=8484, end_port=8485)
         self.assertEqual(port, 8485)
         self.assertEqual(mock_tcp_server.call_count, 2)
@@ -192,7 +216,9 @@ class TestOnboarding(unittest.TestCase):
         # Verify the challenge is the SHA256 hash of the verifier, base64 encoded
         hasher = hashlib.sha256()
         hasher.update(verifier.encode("utf-8"))
-        expected_challenge = base64.urlsafe_b64encode(hasher.digest()).rstrip(b"=").decode("utf-8")
+        expected_challenge = (
+            base64.urlsafe_b64encode(hasher.digest()).rstrip(b"=").decode("utf-8")
+        )
         self.assertEqual(challenge, expected_challenge)
 
     @patch("requests.post")
@@ -232,7 +258,9 @@ class TestOnboarding(unittest.TestCase):
         api_key = exchange_code_for_key("auth_code", "verifier", io_mock)
 
         self.assertIsNone(api_key)
-        io_mock.tool_error.assert_any_call("Error: 'key' not found in OpenRouter response.")
+        io_mock.tool_error.assert_any_call(
+            "Error: 'key' not found in OpenRouter response."
+        )
         io_mock.tool_error.assert_any_call('Response: {"other_data": "value"}')
 
     @patch("requests.post")
@@ -288,7 +316,9 @@ class TestOnboarding(unittest.TestCase):
 
     @patch("aider.onboarding.try_to_select_default_model", return_value="gpt-4o")
     @patch("aider.onboarding.offer_openrouter_oauth")
-    def test_select_default_model_already_specified(self, mock_offer_oauth, mock_try_select):
+    def test_select_default_model_already_specified(
+        self, mock_offer_oauth, mock_try_select
+    ):
         """Test select_default_model returns args.model if provided."""
         args = argparse.Namespace(model="specific-model")
         io_mock = DummyIO()
@@ -300,7 +330,9 @@ class TestOnboarding(unittest.TestCase):
 
     @patch("aider.onboarding.try_to_select_default_model", return_value="gpt-4o")
     @patch("aider.onboarding.offer_openrouter_oauth")
-    def test_select_default_model_found_via_env(self, mock_offer_oauth, mock_try_select):
+    def test_select_default_model_found_via_env(
+        self, mock_offer_oauth, mock_try_select
+    ):
         """Test select_default_model returns model found by try_to_select."""
         args = argparse.Namespace(model=None)  # No model specified
         io_mock = DummyIO()
@@ -315,7 +347,9 @@ class TestOnboarding(unittest.TestCase):
         io_mock.tool_warning.assert_called_once_with(
             "Using gpt-4o model with API key from environment."
         )
-        analytics_mock.event.assert_called_once_with("auto_model_selection", model="gpt-4o")
+        analytics_mock.event.assert_called_once_with(
+            "auto_model_selection", model="gpt-4o"
+        )
         mock_offer_oauth.assert_not_called()
 
     @patch(
@@ -324,7 +358,9 @@ class TestOnboarding(unittest.TestCase):
     @patch(
         "aider.onboarding.offer_openrouter_oauth", return_value=False
     )  # OAuth offered but fails/declined
-    def test_select_default_model_no_keys_oauth_fail(self, mock_offer_oauth, mock_try_select):
+    def test_select_default_model_no_keys_oauth_fail(
+        self, mock_offer_oauth, mock_try_select
+    ):
         """Test select_default_model offers OAuth when no keys, but OAuth fails."""
         args = argparse.Namespace(model=None)
         io_mock = DummyIO()
@@ -335,7 +371,9 @@ class TestOnboarding(unittest.TestCase):
         selected_model = select_default_model(args, io_mock, analytics_mock)
 
         self.assertIsNone(selected_model)
-        self.assertEqual(mock_try_select.call_count, 2)  # Called before and after oauth attempt
+        self.assertEqual(
+            mock_try_select.call_count, 2
+        )  # Called before and after oauth attempt
         mock_offer_oauth.assert_called_once_with(io_mock, analytics_mock)
         io_mock.tool_warning.assert_called_once_with(
             "No LLM model was specified and no API keys were provided."
@@ -349,7 +387,9 @@ class TestOnboarding(unittest.TestCase):
     @patch(
         "aider.onboarding.offer_openrouter_oauth", return_value=True
     )  # OAuth offered and succeeds
-    def test_select_default_model_no_keys_oauth_success(self, mock_offer_oauth, mock_try_select):
+    def test_select_default_model_no_keys_oauth_success(
+        self, mock_offer_oauth, mock_try_select
+    ):
         """Test select_default_model offers OAuth, which succeeds."""
         args = argparse.Namespace(model=None)
         io_mock = DummyIO()
@@ -387,12 +427,16 @@ class TestOnboarding(unittest.TestCase):
         io_mock.confirm_ask.assert_called_once()
         mock_start_oauth.assert_called_once_with(io_mock, analytics_mock)
         self.assertEqual(os.environ.get("OPENROUTER_API_KEY"), "new_or_key")
-        analytics_mock.event.assert_any_call("oauth_flow_initiated", provider="openrouter")
+        analytics_mock.event.assert_any_call(
+            "oauth_flow_initiated", provider="openrouter"
+        )
         analytics_mock.event.assert_any_call("oauth_flow_success")
         # Clean up env var
         del os.environ["OPENROUTER_API_KEY"]
 
-    @patch("aider.onboarding.start_openrouter_oauth_flow", return_value=None)  # OAuth fails
+    @patch(
+        "aider.onboarding.start_openrouter_oauth_flow", return_value=None
+    )  # OAuth fails
     @patch.dict(os.environ, {}, clear=True)
     def test_offer_openrouter_oauth_confirm_yes_fail(self, mock_start_oauth):
         """Test offer_openrouter_oauth when user confirms but OAuth fails."""
@@ -411,7 +455,9 @@ class TestOnboarding(unittest.TestCase):
         io_mock.tool_error.assert_called_once_with(
             "OpenRouter authentication did not complete successfully."
         )
-        analytics_mock.event.assert_any_call("oauth_flow_initiated", provider="openrouter")
+        analytics_mock.event.assert_any_call(
+            "oauth_flow_initiated", provider="openrouter"
+        )
         analytics_mock.event.assert_any_call("oauth_flow_failure")
 
     @patch("aider.onboarding.start_openrouter_oauth_flow")

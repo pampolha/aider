@@ -54,7 +54,9 @@ def subset_font(font_path, text):
     return font_data
 
 
-def generate_svg_with_embedded_font(font_path, text="aider", color="#14b014", output_path=None):
+def generate_svg_with_embedded_font(
+    font_path, text="aider", color="#14b014", output_path=None
+):
     """
     Generate an SVG with embedded TTF font data.
 
@@ -120,14 +122,18 @@ def generate_svg_with_embedded_font(font_path, text="aider", color="#14b014", ou
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate an SVG logo with embedded font")
+    parser = argparse.ArgumentParser(
+        description="Generate an SVG logo with embedded font"
+    )
     parser.add_argument(
         "--font",
         type=str,
         default="aider/website/assets/Glass_TTY_VT220.ttf",
         help="Path to the TTF font file",
     )
-    parser.add_argument("--text", type=str, default="aider", help="Text to display in the SVG")
+    parser.add_argument(
+        "--text", type=str, default="aider", help="Text to display in the SVG"
+    )
     parser.add_argument(
         "--color", type=str, default="#14b014", help="Color of the text (hex format)"
     )
@@ -138,7 +144,9 @@ def main():
         help="Path to save the SVG file",
     )
     parser.add_argument(
-        "--verbose", action="store_true", help="Print additional information about font subsetting"
+        "--verbose",
+        action="store_true",
+        help="Print additional information about font subsetting",
     )
 
     args = parser.parse_args()
@@ -156,7 +164,9 @@ def main():
 
     # Generate the SVG
     if args.verbose:
-        print(f"Subsetting font {args.font} to include only characters for: {args.text}")
+        print(
+            f"Subsetting font {args.font} to include only characters for: {args.text}"
+        )
 
     svg = generate_svg_with_embedded_font(
         args.font, text=args.text, color=args.color, output_path=args.output

@@ -61,7 +61,9 @@ def extract_commentary(markdown_file):
 def check_ffmpeg():
     """Check if FFmpeg is available."""
     try:
-        subprocess.run(["ffmpeg", "-version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(
+            ["ffmpeg", "-version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
         return True
     except (subprocess.SubprocessError, FileNotFoundError):
         return False
@@ -102,7 +104,10 @@ def generate_audio_openai(text, output_file, voice=VOICE, bitrate=MP3_BITRATE):
         return False
 
     url = "https://api.openai.com/v1/audio/speech"
-    headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json",
+    }
     data = {"model": "tts-1", "input": text, "voice": voice}
 
     try:
@@ -157,7 +162,9 @@ def load_metadata(output_dir):
             with open(metadata_file, "r") as f:
                 return json.load(f)
         except json.JSONDecodeError:
-            print(f"Warning: Could not parse metadata file {metadata_file}, will recreate it")
+            print(
+                f"Warning: Could not parse metadata file {metadata_file}, will recreate it"
+            )
 
     return {}
 
@@ -178,14 +185,22 @@ def get_timestamp_key(time_sec):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate TTS audio for recording commentary.")
+    parser = argparse.ArgumentParser(
+        description="Generate TTS audio for recording commentary."
+    )
     parser.add_argument("markdown_file", help="Path to the recording markdown file")
-    parser.add_argument("--voice", default=VOICE, help=f"OpenAI voice to use (default: {VOICE})")
     parser.add_argument(
-        "--output-dir", default=OUTPUT_DIR, help=f"Output directory (default: {OUTPUT_DIR})"
+        "--voice", default=VOICE, help=f"OpenAI voice to use (default: {VOICE})"
     )
     parser.add_argument(
-        "--dry-run", action="store_true", help="Print what would be done without generating audio"
+        "--output-dir",
+        default=OUTPUT_DIR,
+        help=f"Output directory (default: {OUTPUT_DIR})",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print what would be done without generating audio",
     )
     parser.add_argument(
         "--force", action="store_true", help="Force regeneration of all audio files"
@@ -210,7 +225,9 @@ def main():
     # Check if FFmpeg is available for compression
     if not check_ffmpeg() and not args.dry_run:
         print("Warning: FFmpeg not found. Audio compression will be skipped.")
-        print("To enable compression, please install FFmpeg: https://ffmpeg.org/download.html")
+        print(
+            "To enable compression, please install FFmpeg: https://ffmpeg.org/download.html"
+        )
 
     recording_id = extract_recording_id(args.markdown_file)
     print(f"Processing recording: {recording_id}")
@@ -288,7 +305,9 @@ def main():
                 print(f"Removing obsolete file: {filename}")
                 os.remove(file_path)
     elif files_to_delete:
-        print(f"Would remove {len(files_to_delete)} obsolete files: {', '.join(files_to_delete)}")
+        print(
+            f"Would remove {len(files_to_delete)} obsolete files: {', '.join(files_to_delete)}"
+        )
 
     # Generate audio for each marker
     for time_sec, message in markers:

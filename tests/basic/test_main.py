@@ -49,7 +49,11 @@ class TestMain(TestCase):
         main(["--no-git", "--exit", "--yes"], input=DummyInput(), output=DummyOutput())
 
     def test_main_with_emptqy_dir_new_file(self):
-        main(["foo.txt", "--yes", "--no-git", "--exit"], input=DummyInput(), output=DummyOutput())
+        main(
+            ["foo.txt", "--yes", "--no-git", "--exit"],
+            input=DummyInput(),
+            output=DummyOutput(),
+        )
         self.assertTrue(os.path.exists("foo.txt"))
 
     @patch("aider.repo.GitRepo.get_commit_message", return_value="mock commit message")
@@ -61,7 +65,11 @@ class TestMain(TestCase):
     @patch("aider.repo.GitRepo.get_commit_message", return_value="mock commit message")
     def test_main_with_empty_git_dir_new_files(self, _):
         make_repo()
-        main(["--yes", "foo.txt", "bar.txt", "--exit"], input=DummyInput(), output=DummyOutput())
+        main(
+            ["--yes", "foo.txt", "bar.txt", "--exit"],
+            input=DummyInput(),
+            output=DummyOutput(),
+        )
         self.assertTrue(os.path.exists("foo.txt"))
         self.assertTrue(os.path.exists("bar.txt"))
 
@@ -334,7 +342,9 @@ class TestMain(TestCase):
                 input=DummyInput(),
                 output=DummyOutput(),
             )
-            MockCoder.return_value.run.assert_called_once_with(with_message=message_file_content)
+            MockCoder.return_value.run.assert_called_once_with(
+                with_message=message_file_content
+            )
 
         os.remove(message_file_path)
 
@@ -359,7 +369,11 @@ class TestMain(TestCase):
                 patch("aider.main.check_version") as mock_check_version,
                 patch("aider.main.InputOutput") as mock_input_output,
             ):
-                main(["--exit", "--check-update"], input=DummyInput(), output=DummyOutput())
+                main(
+                    ["--exit", "--check-update"],
+                    input=DummyInput(),
+                    output=DummyOutput(),
+                )
                 mock_check_version.assert_called_once()
                 mock_input_output.assert_called_once()
 
@@ -395,7 +409,11 @@ class TestMain(TestCase):
         # Mock InputOutput to capture the configuration
         with patch("aider.main.InputOutput") as MockInputOutput:
             MockInputOutput.return_value.get_input.return_value = None
-            main(["--dark-mode", "--no-git", "--exit"], input=DummyInput(), output=DummyOutput())
+            main(
+                ["--dark-mode", "--no-git", "--exit"],
+                input=DummyInput(),
+                output=DummyOutput(),
+            )
             # Ensure InputOutput was called
             MockInputOutput.assert_called_once()
             # Check if the code_theme setting is for dark mode
@@ -406,7 +424,11 @@ class TestMain(TestCase):
         # Mock InputOutput to capture the configuration
         with patch("aider.main.InputOutput") as MockInputOutput:
             MockInputOutput.return_value.get_input.return_value = None
-            main(["--light-mode", "--no-git", "--exit"], input=DummyInput(), output=DummyOutput())
+            main(
+                ["--light-mode", "--no-git", "--exit"],
+                input=DummyInput(),
+                output=DummyOutput(),
+            )
             # Ensure InputOutput was called
             MockInputOutput.assert_called_once()
             # Check if the code_theme setting is for light mode
@@ -492,7 +514,9 @@ class TestMain(TestCase):
                 MockLinter.assert_called_once()
                 called_arg = MockLinter.call_args[0][0]
                 self.assertTrue(called_arg.endswith("dirty_file.py"))
-                self.assertFalse(called_arg.endswith(f"subdir{os.path.sep}dirty_file.py"))
+                self.assertFalse(
+                    called_arg.endswith(f"subdir{os.path.sep}dirty_file.py")
+                )
 
     def test_verbose_mode_lists_env_vars(self):
         self.create_env_file(".env", "AIDER_DARK_MODE=on")
@@ -556,7 +580,9 @@ class TestMain(TestCase):
                 main(["--yes", "--exit"], input=DummyInput(), output=DummyOutput())
                 _, kwargs = MockCoder.call_args
                 print("kwargs:", kwargs)  # Add this line for debugging
-                self.assertIn("main_model", kwargs, "main_model key not found in kwargs")
+                self.assertIn(
+                    "main_model", kwargs, "main_model key not found in kwargs"
+                )
                 self.assertEqual(kwargs["main_model"].name, "gpt-4-32k")
                 self.assertEqual(kwargs["map_tokens"], 4096)
 
@@ -867,7 +893,14 @@ class TestMain(TestCase):
                 patch("aider.models.Model.set_reasoning_effort") as mock_set_reasoning,
             ):
                 main(
-                    ["--model", "gpt-3.5-turbo", "--reasoning-effort", "3", "--yes", "--exit"],
+                    [
+                        "--model",
+                        "gpt-3.5-turbo",
+                        "--reasoning-effort",
+                        "3",
+                        "--yes",
+                        "--exit",
+                    ],
                     input=DummyInput(),
                     output=DummyOutput(),
                 )
@@ -949,7 +982,16 @@ class TestMain(TestCase):
     def test_api_key_multiple(self):
         # Test setting multiple API keys
         with GitTemporaryDirectory():
-            main(["--api-key", "anthropic=key1", "--api-key", "openai=key2", "--exit", "--yes"])
+            main(
+                [
+                    "--api-key",
+                    "anthropic=key1",
+                    "--api-key",
+                    "openai=key2",
+                    "--exit",
+                    "--yes",
+                ]
+            )
             self.assertEqual(os.environ.get("ANTHROPIC_API_KEY"), "key1")
             self.assertEqual(os.environ.get("OPENAI_API_KEY"), "key2")
 
@@ -1076,7 +1118,10 @@ class TestMain(TestCase):
             # Test Anthropic API key
             os.environ["ANTHROPIC_API_KEY"] = "test-key"
             coder = main(
-                ["--exit", "--yes"], input=DummyInput(), output=DummyOutput(), return_coder=True
+                ["--exit", "--yes"],
+                input=DummyInput(),
+                output=DummyOutput(),
+                return_coder=True,
             )
             self.assertIn("sonnet", coder.main_model.name.lower())
             del os.environ["ANTHROPIC_API_KEY"]
@@ -1084,7 +1129,10 @@ class TestMain(TestCase):
             # Test DeepSeek API key
             os.environ["DEEPSEEK_API_KEY"] = "test-key"
             coder = main(
-                ["--exit", "--yes"], input=DummyInput(), output=DummyOutput(), return_coder=True
+                ["--exit", "--yes"],
+                input=DummyInput(),
+                output=DummyOutput(),
+                return_coder=True,
             )
             self.assertIn("deepseek", coder.main_model.name.lower())
             del os.environ["DEEPSEEK_API_KEY"]
@@ -1092,7 +1140,10 @@ class TestMain(TestCase):
             # Test OpenRouter API key
             os.environ["OPENROUTER_API_KEY"] = "test-key"
             coder = main(
-                ["--exit", "--yes"], input=DummyInput(), output=DummyOutput(), return_coder=True
+                ["--exit", "--yes"],
+                input=DummyInput(),
+                output=DummyOutput(),
+                return_coder=True,
             )
             self.assertIn("openrouter/", coder.main_model.name.lower())
             del os.environ["OPENROUTER_API_KEY"]
@@ -1100,7 +1151,10 @@ class TestMain(TestCase):
             # Test OpenAI API key
             os.environ["OPENAI_API_KEY"] = "test-key"
             coder = main(
-                ["--exit", "--yes"], input=DummyInput(), output=DummyOutput(), return_coder=True
+                ["--exit", "--yes"],
+                input=DummyInput(),
+                output=DummyOutput(),
+                return_coder=True,
             )
             self.assertIn("gpt-4", coder.main_model.name.lower())
             del os.environ["OPENAI_API_KEY"]
@@ -1108,16 +1162,25 @@ class TestMain(TestCase):
             # Test Gemini API key
             os.environ["GEMINI_API_KEY"] = "test-key"
             coder = main(
-                ["--exit", "--yes"], input=DummyInput(), output=DummyOutput(), return_coder=True
+                ["--exit", "--yes"],
+                input=DummyInput(),
+                output=DummyOutput(),
+                return_coder=True,
             )
             self.assertIn("gemini", coder.main_model.name.lower())
             del os.environ["GEMINI_API_KEY"]
 
             # Test no API keys - should offer OpenRouter OAuth
             with patch("aider.onboarding.offer_openrouter_oauth") as mock_offer_oauth:
-                mock_offer_oauth.return_value = None  # Simulate user declining or failure
-                result = main(["--exit", "--yes"], input=DummyInput(), output=DummyOutput())
-                self.assertEqual(result, 1)  # Expect failure since no model could be selected
+                mock_offer_oauth.return_value = (
+                    None  # Simulate user declining or failure
+                )
+                result = main(
+                    ["--exit", "--yes"], input=DummyInput(), output=DummyOutput()
+                )
+                self.assertEqual(
+                    result, 1
+                )  # Expect failure since no model could be selected
                 mock_offer_oauth.assert_called_once()
 
     def test_model_precedence(self):
@@ -1126,7 +1189,10 @@ class TestMain(TestCase):
             os.environ["ANTHROPIC_API_KEY"] = "test-key"
             os.environ["OPENAI_API_KEY"] = "test-key"
             coder = main(
-                ["--exit", "--yes"], input=DummyInput(), output=DummyOutput(), return_coder=True
+                ["--exit", "--yes"],
+                input=DummyInput(),
+                output=DummyOutput(),
+                return_coder=True,
             )
             self.assertIn("sonnet", coder.main_model.name.lower())
             del os.environ["ANTHROPIC_API_KEY"]
@@ -1155,7 +1221,9 @@ class TestMain(TestCase):
 
     @patch("git.Repo.init")
     def test_main_exit_with_git_command_not_found(self, mock_git_init):
-        mock_git_init.side_effect = git.exc.GitCommandNotFound("git", "Command 'git' not found")
+        mock_git_init.side_effect = git.exc.GitCommandNotFound(
+            "git", "Command 'git' not found"
+        )
 
         try:
             result = main(["--exit", "--yes"], input=DummyInput(), output=DummyOutput())
@@ -1166,13 +1234,20 @@ class TestMain(TestCase):
 
     def test_reasoning_effort_option(self):
         coder = main(
-            ["--reasoning-effort", "3", "--no-check-model-accepts-settings", "--yes", "--exit"],
+            [
+                "--reasoning-effort",
+                "3",
+                "--no-check-model-accepts-settings",
+                "--yes",
+                "--exit",
+            ],
             input=DummyInput(),
             output=DummyOutput(),
             return_coder=True,
         )
         self.assertEqual(
-            coder.main_model.extra_params.get("extra_body", {}).get("reasoning_effort"), "3"
+            coder.main_model.extra_params.get("extra_body", {}).get("reasoning_effort"),
+            "3",
         )
 
     def test_thinking_tokens_option(self):

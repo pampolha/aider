@@ -22,7 +22,9 @@ class ActionType(str, Enum):
 
 @dataclass
 class Chunk:
-    orig_index: int = -1  # Line number in the *original* file block where the change starts
+    orig_index: int = (
+        -1
+    )  # Line number in the *original* file block where the change starts
     del_lines: List[str] = field(default_factory=list)
     ins_lines: List[str] = field(default_factory=list)
 
@@ -56,7 +58,9 @@ def _norm(line: str) -> str:
     return line.rstrip("\r")
 
 
-def find_context_core(lines: List[str], context: List[str], start: int) -> Tuple[int, int]:
+def find_context_core(
+    lines: List[str], context: List[str], start: int
+) -> Tuple[int, int]:
     """Finds context block, returns start index and fuzz level."""
     if not context:
         return start, 0
@@ -78,12 +82,16 @@ def find_context_core(lines: List[str], context: List[str], start: int) -> Tuple
     return -1, 0
 
 
-def find_context(lines: List[str], context: List[str], start: int, eof: bool) -> Tuple[int, int]:
+def find_context(
+    lines: List[str], context: List[str], start: int, eof: bool
+) -> Tuple[int, int]:
     """Finds context, handling EOF marker."""
     if eof:
         # If EOF marker, first try matching at the very end
         if len(lines) >= len(context):
-            new_index, fuzz = find_context_core(lines, context, len(lines) - len(context))
+            new_index, fuzz = find_context_core(
+                lines, context, len(lines) - len(context)
+            )
             if new_index != -1:
                 return new_index, fuzz
         # If not found at end, search from `start` as fallback
@@ -93,7 +101,9 @@ def find_context(lines: List[str], context: List[str], start: int, eof: bool) ->
     return find_context_core(lines, context, start)
 
 
-def peek_next_section(lines: List[str], index: int) -> Tuple[List[str], List[Chunk], int, bool]:
+def peek_next_section(
+    lines: List[str], index: int
+) -> Tuple[List[str], List[Chunk], int, bool]:
     """
     Parses one section (context, -, + lines) of an Update block.
     Returns: (context_lines, chunks_in_section, next_index, is_eof)
@@ -163,7 +173,9 @@ def peek_next_section(lines: List[str], index: int) -> Tuple[List[str], List[Chu
         # Collect lines based on mode
         if mode == "delete":
             del_lines.append(line_content)
-            context_lines.append(line_content)  # Deleted lines are part of the original context
+            context_lines.append(
+                line_content
+            )  # Deleted lines are part of the original context
         elif mode == "add":
             ins_lines.append(line_content)
         elif mode == "keep":
@@ -229,8 +241,7 @@ class PatchCoder(Coder):
         # Check for patch sentinels
         lines = content.splitlines()
         if (
-            len(lines) < 2
-            or not _norm(lines[0]).startswith("*** Begin Patch")
+            len(lines) < 2 or not _norm(lines[0]).startswith("*** Begin Patch")
             # Allow flexible end, might be EOF or just end of stream
             # or _norm(lines[-1]) != "*** End Patch"
         ):
@@ -315,14 +326,18 @@ class PatchCoder(Coder):
 
                 # Optional move target
                 move_to = None
-                if index < len(lines) and _norm(lines[index]).startswith("*** Move to: "):
+                if index < len(lines) and _norm(lines[index]).startswith(
+                    "*** Move to: "
+                ):
                     move_to = _norm(lines[index])[len("*** Move to: ") :].strip()
                     index += 1
                     if not move_to:
                         raise DiffError("Move to action missing path.")
 
                 if path not in current_files:
-                    raise DiffError(f"Update File Error - missing file content for: {path}")
+                    raise DiffError(
+                        f"Update File Error - missing file content for: {path}"
+                    )
 
                 file_content = current_files[path]
 
@@ -338,8 +353,13 @@ class PatchCoder(Coder):
                     existing_action.chunks.extend(new_action.chunks)
 
                     if move_to:
-                        if existing_action.move_path and existing_action.move_path != move_to:
-                            raise DiffError(f"Conflicting move targets for file: {path}")
+                        if (
+                            existing_action.move_path
+                            and existing_action.move_path != move_to
+                        ):
+                            raise DiffError(
+                                f"Conflicting move targets for file: {path}"
+                            )
                         existing_action.move_path = move_to
                     fuzz_accumulator += fuzz
                 else:
@@ -363,7 +383,9 @@ class PatchCoder(Coder):
                 if existing_action:
                     if existing_action.type == ActionType.DELETE:
                         # Duplicate delete – ignore the extra block
-                        self.io.tool_warning(f"Duplicate delete action for file: {path} ignored.")
+                        self.io.tool_warning(
+                            f"Duplicate delete action for file: {path} ignored."
+                        )
                         continue
                     else:
                         raise DiffError(f"Conflicting actions for file: {path}")
@@ -469,7 +491,8 @@ class PatchCoder(Coder):
                         for i, scope in enumerate(scope_lines):
                             if (
                                 temp_index + i >= len(orig_lines)
-                                or _norm(orig_lines[temp_index + i]).strip() != scope.strip()
+                                or _norm(orig_lines[temp_index + i]).strip()
+                                != scope.strip()
                             ):
                                 match = False
                                 break
@@ -485,10 +508,14 @@ class PatchCoder(Coder):
                     raise DiffError(f"Could not find scope context:\n{scope_txt}")
 
             # Peek and parse the next context/change section
-            context_block, chunks_in_section, next_index, is_eof = peek_next_section(lines, index)
+            context_block, chunks_in_section, next_index, is_eof = peek_next_section(
+                lines, index
+            )
 
             # Find where this context block appears in the original file
-            found_index, fuzz = find_context(orig_lines, context_block, current_file_index, is_eof)
+            found_index, fuzz = find_context(
+                orig_lines, context_block, current_file_index, is_eof
+            )
             total_fuzz += fuzz
 
             if found_index == -1:
@@ -513,7 +540,9 @@ class PatchCoder(Coder):
 
         return action, index, total_fuzz
 
-    def _parse_add_file_content(self, lines: List[str], index: int) -> Tuple[PatchAction, int]:
+    def _parse_add_file_content(
+        self, lines: List[str], index: int
+    ) -> Tuple[PatchAction, int]:
         """Parses the content (+) lines for an Add File action."""
         added_lines: List[str] = []
         while index < len(lines):
@@ -543,7 +572,9 @@ class PatchCoder(Coder):
 
             index += 1
 
-        action = PatchAction(type=ActionType.ADD, path="", new_content="\n".join(added_lines))
+        action = PatchAction(
+            type=ActionType.ADD, path="", new_content="\n".join(added_lines)
+        )
         return action, index
 
     def apply_edits(self, edits: List[PatchAction]):
@@ -566,7 +597,9 @@ class PatchCoder(Coder):
                 if action.type == ActionType.ADD:
                     # Check existence *before* writing
                     if path_obj.exists():
-                        raise DiffError(f"ADD Error: File already exists: {action.path}")
+                        raise DiffError(
+                            f"ADD Error: File already exists: {action.path}"
+                        )
                     if action.new_content is None:
                         # Parser should ensure this doesn't happen
                         raise DiffError(f"ADD change for {action.path} has no content")
@@ -590,18 +623,26 @@ class PatchCoder(Coder):
 
                 elif action.type == ActionType.UPDATE:
                     if not path_obj.exists():
-                        raise DiffError(f"UPDATE Error: File does not exist: {action.path}")
+                        raise DiffError(
+                            f"UPDATE Error: File does not exist: {action.path}"
+                        )
 
                     current_content = self.io.read_text(full_path)
                     if current_content is None:
                         # Should have been caught during parsing if file was needed
-                        raise DiffError(f"Could not read file for UPDATE: {action.path}")
+                        raise DiffError(
+                            f"Could not read file for UPDATE: {action.path}"
+                        )
 
                     # Apply the update logic using the parsed chunks
-                    new_content = self._apply_update(current_content, action, action.path)
+                    new_content = self._apply_update(
+                        current_content, action, action.path
+                    )
 
                     target_full_path = (
-                        self.abs_root_path(action.move_path) if action.move_path else full_path
+                        self.abs_root_path(action.move_path)
+                        if action.move_path
+                        else full_path
                     )
                     target_path_obj = pathlib.Path(target_full_path)
 
@@ -632,7 +673,9 @@ class PatchCoder(Coder):
 
             except (DiffError, FileNotFoundError, IOError, OSError) as e:
                 # Raise a ValueError to signal failure, consistent with other coders.
-                raise ValueError(f"Error applying action '{action.type}' to {action.path}: {e}")
+                raise ValueError(
+                    f"Error applying action '{action.type}' to {action.path}: {e}"
+                )
             except Exception as e:
                 # Catch unexpected errors during application
                 raise ValueError(
@@ -673,7 +716,9 @@ class PatchCoder(Coder):
             # Verify that the lines to be deleted actually match the original file content
             # (The parser should have used find_context, but double-check here)
             num_del = len(chunk.del_lines)
-            actual_deleted_lines = orig_lines[chunk_start_index : chunk_start_index + num_del]
+            actual_deleted_lines = orig_lines[
+                chunk_start_index : chunk_start_index + num_del
+            ]
 
             # Use the same normalization as find_context_core for comparison robustness
             norm_chunk_del = [_norm(s).strip() for s in chunk.del_lines]
@@ -701,6 +746,8 @@ class PatchCoder(Coder):
 
         # Join lines and ensure a single trailing newline
         result = "\n".join(dest_lines)
-        if result or orig_lines:  # Add newline unless result is empty and original was empty
+        if (
+            result or orig_lines
+        ):  # Add newline unless result is empty and original was empty
             result += "\n"
         return result

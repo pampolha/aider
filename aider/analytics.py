@@ -100,7 +100,8 @@ class Analytics:
 
         # self.mp = Mixpanel(mixpanel_project_token)
         self.ph = Posthog(
-            project_api_key=self.custom_posthog_project_api_key or posthog_project_api_key,
+            project_api_key=self.custom_posthog_project_api_key
+            or posthog_project_api_key,
             host=self.custom_posthog_host or posthog_host,
             on_error=self.posthog_error,
             enable_exception_autocapture=True,
@@ -219,7 +220,9 @@ class Analytics:
         if main_model:
             properties["main_model"] = self._redact_model_name(main_model)
             properties["weak_model"] = self._redact_model_name(main_model.weak_model)
-            properties["editor_model"] = self._redact_model_name(main_model.editor_model)
+            properties["editor_model"] = self._redact_model_name(
+                main_model.editor_model
+            )
 
         properties.update(kwargs)
 

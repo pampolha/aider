@@ -20,7 +20,9 @@ GITHUB_STARS_TOOLTIP = "Total number of GitHub stars the Aider project has recei
 PYPI_DOWNLOADS_TOOLTIP = "Total number of installations via pip from PyPI"
 TOKENS_WEEKLY_TOOLTIP = "Number of tokens processed weekly by Aider users"
 OPENROUTER_TOOLTIP = "Aider's ranking among applications on the OpenRouter platform"
-SINGULARITY_TOOLTIP = "Percentage of the new code in Aider's last release written by Aider itself"
+SINGULARITY_TOOLTIP = (
+    "Percentage of the new code in Aider's last release written by Aider itself"
+)
 
 # Cache settings
 CACHE_DIR = os.path.expanduser("~/.cache/aider-badges")
@@ -93,17 +95,22 @@ def get_downloads_from_bigquery(credentials_path=None, package_name="aider-chat"
     # Check if we have a valid cached value
     cached_downloads, is_valid = read_from_cache(package_name)
     if is_valid:
-        print(f"Using cached download statistics for {package_name} (valid for 24 hours)")
+        print(
+            f"Using cached download statistics for {package_name} (valid for 24 hours)"
+        )
         return cached_downloads
 
-    print(f"Cache invalid or expired, fetching fresh download statistics for {package_name}")
+    print(
+        f"Cache invalid or expired, fetching fresh download statistics for {package_name}"
+    )
 
     try:
         # Initialize credentials if path provided
         credentials = None
         if credentials_path:
             credentials = service_account.Credentials.from_service_account_file(
-                credentials_path, scopes=["https://www.googleapis.com/auth/cloud-platform"]
+                credentials_path,
+                scopes=["https://www.googleapis.com/auth/cloud-platform"],
             )
 
         # Create a client
@@ -181,7 +188,9 @@ def get_total_downloads(
 
         return total_downloads
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching download statistics from pepy.tech: {e}", file=sys.stderr)
+        print(
+            f"Error fetching download statistics from pepy.tech: {e}", file=sys.stderr
+        )
         sys.exit(1)
 
 
@@ -305,7 +314,9 @@ def get_badges_md():
 
     # Check if we should use BigQuery and get credentials path
     bigquery_env = os.environ.get("USE_BIGQUERY", "false")
-    use_bigquery = bigquery_env.lower() in ("true", "1", "yes") or os.path.exists(bigquery_env)
+    use_bigquery = bigquery_env.lower() in ("true", "1", "yes") or os.path.exists(
+        bigquery_env
+    )
     credentials_path = bigquery_env if os.path.exists(bigquery_env) else None
 
     # Get API key from environment variable if not using BigQuery
@@ -323,7 +334,9 @@ def get_badges_md():
             sys.exit(1)
 
     # Get PyPI downloads for the default package
-    total_downloads = get_total_downloads(api_key, "aider-chat", use_bigquery, credentials_path)
+    total_downloads = get_total_downloads(
+        api_key, "aider-chat", use_bigquery, credentials_path
+    )
 
     # Get GitHub stars for the default repo
     stars = get_github_stars("paul-gauthier/aider")
@@ -344,7 +357,9 @@ def get_badges_html():
 
     # Check if we should use BigQuery and get credentials path
     bigquery_env = os.environ.get("USE_BIGQUERY", "false")
-    use_bigquery = bigquery_env.lower() in ("true", "1", "yes") or os.path.exists(bigquery_env)
+    use_bigquery = bigquery_env.lower() in ("true", "1", "yes") or os.path.exists(
+        bigquery_env
+    )
     credentials_path = bigquery_env if os.path.exists(bigquery_env) else None
 
     # Get API key from environment variable if not using BigQuery
@@ -362,7 +377,9 @@ def get_badges_html():
             sys.exit(1)
 
     # Get PyPI downloads for the default package
-    total_downloads = get_total_downloads(api_key, "aider-chat", use_bigquery, credentials_path)
+    total_downloads = get_total_downloads(
+        api_key, "aider-chat", use_bigquery, credentials_path
+    )
 
     # Get GitHub stars for the default repo
     stars = get_github_stars("paul-gauthier/aider")
@@ -463,22 +480,30 @@ def get_testimonials_js():
                                     if "— [" in full_line and "](" in full_line:
                                         author_parts = full_line.split("— [")
                                         if len(author_parts) > 1:
-                                            author = author_parts[1].split("]")[0].strip()
+                                            author = (
+                                                author_parts[1].split("]")[0].strip()
+                                            )
 
                                             # Extract the link if it exists
                                             link_parts = full_line.split("](")
                                             if len(link_parts) > 1:
-                                                link = link_parts[1].split(")")[0].strip()
+                                                link = (
+                                                    link_parts[1].split(")")[0].strip()
+                                                )
                                     # Check for regular dash format: "- [author](link)"
                                     elif " - [" in full_line and "](" in full_line:
                                         author_parts = full_line.split(" - [")
                                         if len(author_parts) > 1:
-                                            author = author_parts[1].split("]")[0].strip()
+                                            author = (
+                                                author_parts[1].split("]")[0].strip()
+                                            )
 
                                             # Extract the link if it exists
                                             link_parts = full_line.split("](")
                                             if len(link_parts) > 1:
-                                                link = link_parts[1].split(")")[0].strip()
+                                                link = (
+                                                    link_parts[1].split(")")[0].strip()
+                                                )
                                     # Check for em dash without link: "— author"
                                     elif "— " in full_line:
                                         # Format without a link, just plain text author
@@ -493,7 +518,11 @@ def get_testimonials_js():
                                             author = author_parts[1].strip()
 
                                     testimonials.append(
-                                        {"text": quote_text, "author": author, "link": link}
+                                        {
+                                            "text": quote_text,
+                                            "author": author,
+                                            "link": link,
+                                        }
                                     )
                         except Exception as e:
                             print(
@@ -510,9 +539,9 @@ def get_testimonials_js():
         js_array = "<script>\nconst testimonials = [\n"
         for i, t in enumerate(testimonials):
             js_array += "    {\n"
-            js_array += f"        text: \"{t['text']}\",\n"
-            js_array += f"        author: \"{t['author']}\",\n"
-            js_array += f"        link: \"{t['link']}\"\n"
+            js_array += f'        text: "{t["text"]}",\n'
+            js_array += f'        author: "{t["author"]}",\n'
+            js_array += f'        link: "{t["link"]}"\n'
             js_array += "    }"
             if i < len(testimonials) - 1:
                 js_array += ","
@@ -534,7 +563,9 @@ def main():
     # Ensure cache directory exists
     ensure_cache_dir()
 
-    parser = argparse.ArgumentParser(description="Get total downloads and GitHub stars for aider")
+    parser = argparse.ArgumentParser(
+        description="Get total downloads and GitHub stars for aider"
+    )
     parser.add_argument(
         "--api-key",
         help=(
@@ -550,14 +581,17 @@ def main():
         default="paul-gauthier/aider",
         help="GitHub repository (default: paul-gauthier/aider)",
     )
-    parser.add_argument("--markdown", action="store_true", help="Generate markdown badges block")
+    parser.add_argument(
+        "--markdown", action="store_true", help="Generate markdown badges block"
+    )
     parser.add_argument(
         "--use-bigquery",
         action="store_true",
         help="Use BigQuery to fetch download statistics instead of pepy.tech",
     )
     parser.add_argument(
-        "--credentials-path", help="Path to Google Cloud service account credentials JSON file"
+        "--credentials-path",
+        help="Path to Google Cloud service account credentials JSON file",
     )
     args = parser.parse_args()
 
@@ -597,7 +631,9 @@ def main():
         # Continue execution - BigQuery might work without explicit credentials in some environments
 
     # Get PyPI downloads
-    total_downloads = get_total_downloads(api_key, args.package, use_bigquery, credentials_path)
+    total_downloads = get_total_downloads(
+        api_key, args.package, use_bigquery, credentials_path
+    )
     print(f"Total downloads for {args.package}: {total_downloads:,}")
 
     # Get GitHub stars

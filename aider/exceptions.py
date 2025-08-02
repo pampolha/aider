@@ -27,8 +27,14 @@ EXCEPTIONS = [
         True,
         "The API provider has refused the request due to a safety policy about the content.",
     ),
-    ExInfo("ContextWindowExceededError", False, None),  # special case handled in base_coder
-    ExInfo("InternalServerError", True, "The API provider's servers are down or overloaded."),
+    ExInfo(
+        "ContextWindowExceededError", False, None
+    ),  # special case handled in base_coder
+    ExInfo(
+        "InternalServerError",
+        True,
+        "The API provider's servers are down or overloaded.",
+    ),
     ExInfo("InvalidRequestError", True, None),
     ExInfo("JSONSchemaValidationError", True, None),
     ExInfo("NotFoundError", False, None),
@@ -39,7 +45,11 @@ EXCEPTIONS = [
         "The API provider has rate limited you. Try again later or check your quotas.",
     ),
     ExInfo("RouterRateLimitError", True, None),
-    ExInfo("ServiceUnavailableError", True, "The API provider's servers are down or overloaded."),
+    ExInfo(
+        "ServiceUnavailableError",
+        True,
+        "The API provider's servers are down or overloaded.",
+    ),
     ExInfo("UnprocessableEntityError", True, None),
     ExInfo("UnsupportedParamsError", True, None),
     ExInfo(
@@ -63,7 +73,9 @@ class LiteLLMExceptions:
         for var in dir(litellm):
             if var.endswith("Error"):
                 if var not in self.exception_info:
-                    raise ValueError(f"{var} is in litellm but not in aider's exceptions list")
+                    raise ValueError(
+                        f"{var} is in litellm but not in aider's exceptions list"
+                    )
 
         for var in self.exception_info:
             ex = getattr(litellm, var)
@@ -79,10 +91,14 @@ class LiteLLMExceptions:
         if ex.__class__ is litellm.APIConnectionError:
             if "google.auth" in str(ex):
                 return ExInfo(
-                    "APIConnectionError", False, "You need to: pip install google-generativeai"
+                    "APIConnectionError",
+                    False,
+                    "You need to: pip install google-generativeai",
                 )
             if "boto3" in str(ex):
-                return ExInfo("APIConnectionError", False, "You need to: pip install boto3")
+                return ExInfo(
+                    "APIConnectionError", False, "You need to: pip install boto3"
+                )
             if "OpenrouterException" in str(ex) and "'choices'" in str(ex):
                 return ExInfo(
                     "APIConnectionError",

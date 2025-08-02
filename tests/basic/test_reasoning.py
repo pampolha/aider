@@ -44,7 +44,9 @@ class TestReasoning(unittest.TestCase):
         mock_hash.hexdigest.return_value = "mock_hash_digest"
 
         # Mock the model's send_completion method to return the expected tuple format
-        with patch.object(model, "send_completion", return_value=(mock_hash, mock_completion)):
+        with patch.object(
+            model, "send_completion", return_value=(mock_hash, mock_completion)
+        ):
             # Call send with a simple message
             messages = [{"role": "user", "content": "test prompt"}]
             list(coder.send(messages))
@@ -65,13 +67,17 @@ class TestReasoning(unittest.TestCase):
 
             # Verify that partial_response_content only contains the main content
             coder.remove_reasoning_content()
-            self.assertEqual(coder.partial_response_content.strip(), main_content.strip())
+            self.assertEqual(
+                coder.partial_response_content.strip(), main_content.strip()
+            )
 
             # Ensure proper order: reasoning first, then main content
             reasoning_pos = output.find(reasoning_content)
             main_pos = output.find(main_content)
             self.assertLess(
-                reasoning_pos, main_pos, "Reasoning content should appear before main content"
+                reasoning_pos,
+                main_pos,
+                "Reasoning content should appear before main content",
             )
 
     def test_send_with_reasoning_content_stream(self):
@@ -91,7 +97,11 @@ class TestReasoning(unittest.TestCase):
         # Mock streaming response chunks
         class MockStreamingChunk:
             def __init__(
-                self, content=None, reasoning_content=None, reasoning=None, finish_reason=None
+                self,
+                content=None,
+                reasoning_content=None,
+                reasoning=None,
+                finish_reason=None,
             ):
                 self.choices = [MagicMock()]
                 self.choices[0].delta = MagicMock()
@@ -159,12 +169,16 @@ class TestReasoning(unittest.TestCase):
 
             # There should be at least two calls - one for streaming and one final
             self.assertGreaterEqual(
-                len(update_calls), 2, "Should have at least two calls to update (streaming + final)"
+                len(update_calls),
+                2,
+                "Should have at least two calls to update (streaming + final)",
             )
 
             # Check that at least one call has final=True (should be the last one)
             has_final_true = any(call[1].get("final", False) for call in update_calls)
-            self.assertTrue(has_final_true, "At least one update call should have final=True")
+            self.assertTrue(
+                has_final_true, "At least one update call should have final=True"
+            )
 
             # Get the text from the last update call
             final_text = update_calls[-1][0][0]
@@ -179,7 +193,9 @@ class TestReasoning(unittest.TestCase):
             reasoning_pos = final_text.find("My step-by-step reasoning process")
             main_pos = final_text.find("Final answer after reasoning")
             self.assertLess(
-                reasoning_pos, main_pos, "Reasoning content should appear before main content"
+                reasoning_pos,
+                main_pos,
+                "Reasoning content should appear before main content",
             )
 
             # Verify that partial_response_content only contains the main content
@@ -216,7 +232,9 @@ class TestReasoning(unittest.TestCase):
                 # Add required attributes expected by show_send_output
                 self.choices = [MagicMock()]
                 self.choices[0].message.content = content
-                self.choices[0].message.reasoning_content = None  # No separate reasoning_content
+                self.choices[
+                    0
+                ].message.reasoning_content = None  # No separate reasoning_content
                 self.finish_reason = "stop"
 
         mock_completion = MockCompletion(combined_content)
@@ -226,7 +244,9 @@ class TestReasoning(unittest.TestCase):
         mock_hash.hexdigest.return_value = "mock_hash_digest"
 
         # Mock the model's send_completion method to return the expected tuple format
-        with patch.object(model, "send_completion", return_value=(mock_hash, mock_completion)):
+        with patch.object(
+            model, "send_completion", return_value=(mock_hash, mock_completion)
+        ):
             # Call send with a simple message
             messages = [{"role": "user", "content": "test prompt"}]
             list(coder.send(messages))
@@ -249,12 +269,16 @@ class TestReasoning(unittest.TestCase):
             reasoning_pos = output.find(reasoning_content)
             main_pos = output.find(main_content)
             self.assertLess(
-                reasoning_pos, main_pos, "Reasoning content should appear before main content"
+                reasoning_pos,
+                main_pos,
+                "Reasoning content should appear before main content",
             )
 
             # Verify that partial_response_content only contains the main content
             coder.remove_reasoning_content()
-            self.assertEqual(coder.partial_response_content.strip(), main_content.strip())
+            self.assertEqual(
+                coder.partial_response_content.strip(), main_content.strip()
+            )
 
     def test_send_with_think_tags_stream(self):
         """Test that streaming with <think> tags is properly processed and formatted."""
@@ -274,7 +298,11 @@ class TestReasoning(unittest.TestCase):
         # Mock streaming response chunks
         class MockStreamingChunk:
             def __init__(
-                self, content=None, reasoning_content=None, reasoning=None, finish_reason=None
+                self,
+                content=None,
+                reasoning_content=None,
+                reasoning=None,
+                finish_reason=None,
             ):
                 self.choices = [MagicMock()]
                 self.choices[0].delta = MagicMock()
@@ -341,12 +369,16 @@ class TestReasoning(unittest.TestCase):
 
             # There should be at least two calls - one for streaming and one final
             self.assertGreaterEqual(
-                len(update_calls), 2, "Should have at least two calls to update (streaming + final)"
+                len(update_calls),
+                2,
+                "Should have at least two calls to update (streaming + final)",
             )
 
             # Check that at least one call has final=True (should be the last one)
             has_final_true = any(call[1].get("final", False) for call in update_calls)
-            self.assertTrue(has_final_true, "At least one update call should have final=True")
+            self.assertTrue(
+                has_final_true, "At least one update call should have final=True"
+            )
 
             # Get the text from the last update call
             final_text = update_calls[-1][0][0]
@@ -361,7 +393,9 @@ class TestReasoning(unittest.TestCase):
             reasoning_pos = final_text.find("My step-by-step reasoning process")
             main_pos = final_text.find("Final answer after reasoning")
             self.assertLess(
-                reasoning_pos, main_pos, "Reasoning content should appear before main content"
+                reasoning_pos,
+                main_pos,
+                "Reasoning content should appear before main content",
             )
 
     def test_remove_reasoning_content(self):
@@ -421,7 +455,9 @@ End"""
                 # Add required attributes expected by show_send_output
                 self.choices = [MagicMock()]
                 self.choices[0].message.content = content
-                self.choices[0].message.reasoning = (
+                self.choices[
+                    0
+                ].message.reasoning = (
                     reasoning  # Using reasoning instead of reasoning_content
                 )
                 delattr(self.choices[0].message, "reasoning_content")
@@ -434,7 +470,9 @@ End"""
         mock_hash.hexdigest.return_value = "mock_hash_digest"
 
         # Mock the model's send_completion method to return the expected tuple format
-        with patch.object(model, "send_completion", return_value=(mock_hash, mock_completion)):
+        with patch.object(
+            model, "send_completion", return_value=(mock_hash, mock_completion)
+        ):
             # Call send with a simple message
             messages = [{"role": "user", "content": "test prompt"}]
             list(coder.send(messages))
@@ -455,13 +493,17 @@ End"""
 
             # Verify that partial_response_content only contains the main content
             coder.remove_reasoning_content()
-            self.assertEqual(coder.partial_response_content.strip(), main_content.strip())
+            self.assertEqual(
+                coder.partial_response_content.strip(), main_content.strip()
+            )
 
             # Ensure proper order: reasoning first, then main content
             reasoning_pos = output.find(reasoning_content)
             main_pos = output.find(main_content)
             self.assertLess(
-                reasoning_pos, main_pos, "Reasoning content should appear before main content"
+                reasoning_pos,
+                main_pos,
+                "Reasoning content should appear before main content",
             )
 
     def test_send_with_reasoning_stream(self):
@@ -482,7 +524,11 @@ End"""
         # Mock streaming response chunks
         class MockStreamingChunk:
             def __init__(
-                self, content=None, reasoning_content=None, reasoning=None, finish_reason=None
+                self,
+                content=None,
+                reasoning_content=None,
+                reasoning=None,
+                finish_reason=None,
             ):
                 self.choices = [MagicMock()]
                 self.choices[0].delta = MagicMock()
@@ -551,12 +597,16 @@ End"""
 
             # There should be at least two calls - one for streaming and one final
             self.assertGreaterEqual(
-                len(update_calls), 2, "Should have at least two calls to update (streaming + final)"
+                len(update_calls),
+                2,
+                "Should have at least two calls to update (streaming + final)",
             )
 
             # Check that at least one call has final=True (should be the last one)
             has_final_true = any(call[1].get("final", False) for call in update_calls)
-            self.assertTrue(has_final_true, "At least one update call should have final=True")
+            self.assertTrue(
+                has_final_true, "At least one update call should have final=True"
+            )
 
             # Get the text from the last update call
             final_text = update_calls[-1][0][0]
@@ -571,7 +621,9 @@ End"""
             reasoning_pos = final_text.find("My step-by-step reasoning process")
             main_pos = final_text.find("Final answer after reasoning")
             self.assertLess(
-                reasoning_pos, main_pos, "Reasoning content should appear before main content"
+                reasoning_pos,
+                main_pos,
+                "Reasoning content should appear before main content",
             )
 
             # Verify that partial_response_content only contains the main content
@@ -586,11 +638,17 @@ End"""
 
         # Mock the completion response
         mock_response = MagicMock()
-        mock_response.choices = [MagicMock(message=MagicMock(content="""Here is some text
+        mock_response.choices = [
+            MagicMock(
+                message=MagicMock(
+                    content="""Here is some text
 <think>
 This reasoning should be removed
 </think>
-And this text should remain"""))]
+And this text should remain"""
+                )
+            )
+        ]
         mock_completion.return_value = mock_response
 
         messages = [{"role": "user", "content": "test"}]

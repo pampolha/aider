@@ -17,7 +17,9 @@ def sanity_check_messages(messages):
 
         if last_role and role == last_role:
             turns = format_messages(messages)
-            raise ValueError("Messages don't properly alternate user/assistant:\n\n" + turns)
+            raise ValueError(
+                "Messages don't properly alternate user/assistant:\n\n" + turns
+            )
 
         last_role = role
         last_non_system_role = role

@@ -83,13 +83,17 @@ class TestChatSummary(TestCase):
     def test_fallback_to_second_model(self):
         mock_model1 = mock.Mock(spec=Model)
         mock_model1.name = "gpt-4"
-        mock_model1.simple_send_with_retries = mock.Mock(side_effect=Exception("Model 1 failed"))
+        mock_model1.simple_send_with_retries = mock.Mock(
+            side_effect=Exception("Model 1 failed")
+        )
         mock_model1.info = {"max_input_tokens": 4096}
         mock_model1.token_count = lambda msg: len(msg["content"].split())
 
         mock_model2 = mock.Mock(spec=Model)
         mock_model2.name = "gpt-3.5-turbo"
-        mock_model2.simple_send_with_retries = mock.Mock(return_value="Summary from Model 2")
+        mock_model2.simple_send_with_retries = mock.Mock(
+            return_value="Summary from Model 2"
+        )
         mock_model2.info = {"max_input_tokens": 4096}
         mock_model2.token_count = lambda msg: len(msg["content"].split())
 

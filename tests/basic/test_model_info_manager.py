@@ -14,7 +14,9 @@ class TestModelInfoManager(TestCase):
         # Create a temporary directory for cache
         self.temp_dir = tempfile.TemporaryDirectory()
         self.manager.cache_dir = Path(self.temp_dir.name)
-        self.manager.cache_file = self.manager.cache_dir / "model_prices_and_context_window.json"
+        self.manager.cache_file = (
+            self.manager.cache_dir / "model_prices_and_context_window.json"
+        )
         self.manager.cache_dir.mkdir(exist_ok=True)
 
     def tearDown(self):
@@ -38,7 +40,9 @@ class TestModelInfoManager(TestCase):
         mock_get.reset_mock()
         self.manager.set_verify_ssl(False)
         self.manager._update_cache()
-        mock_get.assert_called_with(self.manager.MODEL_INFO_URL, timeout=5, verify=False)
+        mock_get.assert_called_with(
+            self.manager.MODEL_INFO_URL, timeout=5, verify=False
+        )
 
     def test_lazy_loading_cache(self):
         # Create a cache file
@@ -77,4 +81,6 @@ class TestModelInfoManager(TestCase):
             self.manager.get_model_from_cached_json_db("test_model")
 
             # Verify _update_cache was called with verify=False
-            mock_get.assert_called_with(self.manager.MODEL_INFO_URL, timeout=5, verify=False)
+            mock_get.assert_called_with(
+                self.manager.MODEL_INFO_URL, timeout=5, verify=False
+            )
