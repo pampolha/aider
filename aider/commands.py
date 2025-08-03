@@ -500,17 +500,21 @@ class Commands:
         # Process files with progress indication
         total_editable_files = len(self.coder.abs_fnames)
         total_readonly_files = len(self.coder.abs_read_only_fnames)
-        
+
         # Display progress for editable files
         if total_editable_files > 0:
             if total_editable_files > 20:
-                self.io.tool_output(f"Calculating tokens for {total_editable_files} editable files...")
-            
+                self.io.tool_output(
+                    f"Calculating tokens for {total_editable_files} editable files..."
+                )
+
             # Calculate tokens for editable files
             for i, fname in enumerate(self.coder.abs_fnames):
                 if i > 0 and i % 20 == 0 and total_editable_files > 20:
-                    self.io.tool_output(f"Processed {i}/{total_editable_files} editable files...")
-                
+                    self.io.tool_output(
+                        f"Processed {i}/{total_editable_files} editable files..."
+                    )
+
                 relative_fname = self.coder.get_rel_fname(fname)
                 content = self.io.read_text(fname)
                 if is_image_file(relative_fname):
@@ -520,17 +524,21 @@ class Commands:
                     content = f"{relative_fname}\n{fence}\n" + content + "{fence}\n"
                     tokens = self.coder.main_model.token_count(content)
                 file_res.append((tokens, f"{relative_fname}", "/drop to remove"))
-        
+
         # Display progress for read-only files
         if total_readonly_files > 0:
             if total_readonly_files > 20:
-                self.io.tool_output(f"Calculating tokens for {total_readonly_files} read-only files...")
-            
+                self.io.tool_output(
+                    f"Calculating tokens for {total_readonly_files} read-only files..."
+                )
+
             # Calculate tokens for read-only files
             for i, fname in enumerate(self.coder.abs_read_only_fnames):
                 if i > 0 and i % 20 == 0 and total_readonly_files > 20:
-                    self.io.tool_output(f"Processed {i}/{total_readonly_files} read-only files...")
-                
+                    self.io.tool_output(
+                        f"Processed {i}/{total_readonly_files} read-only files..."
+                    )
+
                 relative_fname = self.coder.get_rel_fname(fname)
                 content = self.io.read_text(fname)
                 if content is not None and not is_image_file(relative_fname):
@@ -538,8 +546,8 @@ class Commands:
                     content = f"{relative_fname}\n{fence}\n" + content + "{fence}\n"
                     tokens = self.coder.main_model.token_count(content)
                     file_res.append(
-                    (tokens, f"{relative_fname} (read-only)", "/drop to remove")
-                )
+                        (tokens, f"{relative_fname} (read-only)", "/drop to remove")
+                    )
 
         if total_files > 20:
             self.io.tool_output("Token calculation complete. Generating report...")
@@ -1155,19 +1163,21 @@ class Commands:
         other_files = []
         chat_files = []
         read_only_files = []
+        rag_files = []
         for file in files:
             abs_file_path = self.coder.abs_root_path(file)
             if abs_file_path in self.coder.abs_fnames:
                 chat_files.append(file)
+            elif abs_file_path in self.coder.abs_read_only_fnames:
+                rel_file_path = self.coder.get_rel_fname(abs_file_path)
+                read_only_files.append(rel_file_path)
+            elif abs_file_path in self.coder.abs_rag_fnames:
+                rel_file_path = self.coder.get_rel_fname(abs_file_path)
+                rag_files.append(rel_file_path)
             else:
                 other_files.append(file)
 
-        # Add read-only files
-        for abs_file_path in self.coder.abs_read_only_fnames:
-            rel_file_path = self.coder.get_rel_fname(abs_file_path)
-            read_only_files.append(rel_file_path)
-
-        if not chat_files and not other_files and not read_only_files:
+        if not chat_files and not other_files and not read_only_files and not rag_files:
             self.io.tool_output("\nNo files in chat, git repo, or read-only list.")
             return
 
@@ -1179,6 +1189,11 @@ class Commands:
         if read_only_files:
             self.io.tool_output("\nRead-only files:\n")
         for file in read_only_files:
+            self.io.tool_output(f"  {file}")
+
+        if rag_files:
+            self.io.tool_output("\nRAG files:\n")
+        for file in rag_files:
             self.io.tool_output(f"  {file}")
 
         if chat_files:
