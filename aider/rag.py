@@ -157,8 +157,11 @@ class RagManager:
         return (SemanticChunker(RagManager.voyage_embeddings.func()), "SemanticChunker")
 
     @staticmethod
-    def chunk_files(io: InputOutput, file_names: list[str]) -> list[list[Document]]:
+    def chunk_files(
+        io: InputOutput, file_names: list[str]
+    ) -> tuple[list[list[Document]], list[str]]:
         all_chunks: list[list[Document]] = []
+        changed_file_names: list[str] = []
         for fname in file_names:
             content = io.read_text(fname)
             if not content:
@@ -189,21 +192,25 @@ class RagManager:
                 [content], [{"file_name": fname, "crc32_hash": file_crc32_hash}]
             )
             all_chunks.append(file_chunks)
+            changed_file_names.append(fname)
 
-        return all_chunks
+        return all_chunks, changed_file_names
 
     @staticmethod
-    def embed_store_chunks(io: InputOutput, all_chunks: list[list[Document]]):
+    def embed_store_chunks(
+        io: InputOutput, all_chunks: list[list[Document]], changed_file_names: list[str]
+    ):
         for file_chunks in all_chunks:
             fname = file_chunks[0].metadata["file_name"]
-            io.tool_output(f"Embedding and storing {fname}")
-            file_chunk_ids = RagManager._get_chunk_ids(file_chunks)
+            if fname in changed_file_names:
+                io.tool_output(f"Embedding and storing {fname}")
+                file_chunk_ids = RagManager._get_chunk_ids(file_chunks)
 
-            RagManager.chromadb_collection.func().delete(ids=file_chunk_ids)
+                RagManager.chromadb_collection.func().delete(ids=file_chunk_ids)
 
-            texts = [doc.page_content for doc in file_chunks]
-            embeddings = RagManager.voyage_embeddings.func().embed_documents(texts)
-            RagManager._store_embeddings(file_chunks, embeddings)
+                texts = [doc.page_content for doc in file_chunks]
+                embeddings = RagManager.voyage_embeddings.func().embed_documents(texts)
+                RagManager._store_embeddings(file_chunks, embeddings)
         return None
 
     @staticmethod

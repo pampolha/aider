@@ -1533,17 +1533,19 @@ class Coder:
         # Notify IO that LLM processing is starting
         self.io.llm_started()
 
-        rag_file_chunks = self.get_rag_files_chunks()
-        if rag_file_chunks:
+        rag_file_chunks, changed_file_names = self.get_rag_files_chunks() or [None]
+        if rag_file_chunks and changed_file_names:
             if self.abs_rag_fnames is None:
                 raise Exception("No RAG files are present in the set!")
 
-            RagManager.embed_store_chunks(self.io, all_chunks=rag_file_chunks)
+            RagManager.embed_store_chunks(
+                self.io,
+                all_chunks=rag_file_chunks,
+                changed_file_names=changed_file_names,
+            )
             rag_query_results = RagManager.embed_retrieve_query(
                 query=inp, file_names=list(self.abs_rag_fnames), top_k_percentile=90
             )
-        else:
-            rag_query_results = None
 
         self.cur_messages += [
             dict(role="user", content=inp),
