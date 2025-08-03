@@ -16,7 +16,7 @@ import traceback
 from collections import defaultdict
 from datetime import datetime
 
-from chromadb import QueryResult
+from langchain_core.documents import Document
 
 # Optional dependency: used to convert locale codes (eg ``en_US``)
 # into human-readable language names (eg ``English``).
@@ -124,7 +124,6 @@ class Coder:
     chat_language = None
     commit_language = None
     file_watcher = None
-    ragManager: RagManager
 
     @classmethod
     def create(
@@ -132,7 +131,6 @@ class Coder:
         main_model=None,
         edit_format=None,
         io=None,
-        ragManager=None,
         from_coder=None,
         summarize_from_coder=True,
         **kwargs,
@@ -202,7 +200,7 @@ class Coder:
 
         for coder in coders.__all__:
             if hasattr(coder, "edit_format") and coder.edit_format == edit_format:
-                res = coder(main_model, io, ragManager, **kwargs)
+                res = coder(main_model, io, **kwargs)
                 res.original_kwargs = dict(kwargs)
                 return res
 
@@ -319,7 +317,6 @@ class Coder:
         self,
         main_model,
         io,
-        ragManager: RagManager,
         repo=None,
         fnames=None,
         add_gitignore_files=False,
@@ -392,9 +389,6 @@ class Coder:
 
         if io is None:
             io = InputOutput()
-
-        if ragManager is None:
-            self.ragManager = RagManager(io)
 
         if aider_commit_hashes:
             self.aider_commit_hashes = aider_commit_hashes
@@ -728,22 +722,16 @@ class Coder:
         if self.abs_rag_fnames is None:
             return None
 
-        return self.ragManager.chunk_files(self.abs_rag_fnames)
+        return RagManager.chunk_files(self.io, list(self.abs_rag_fnames))
 
-    def get_rag_files_content(self, rag_query_results: list[QueryResult]):
+    def get_rag_files_content(self, rag_query_results: list[Document]):
         prompt = ""
         for result in rag_query_results:
-            chunks = result.get("documents")
-            metadatas = result.get("metadatas")
-            if chunks is None or metadatas is None:
-                return prompt
-
-            for i in range(len(chunks)):
-                prompt += "\n"
-                prompt += str(metadatas[0][i]["file_name"])
-                prompt += f"\n{self.fence[0]}\n"
-                prompt += chunks[0][i]
-                prompt += f"{self.fence[1]}\n"
+            prompt += "\n"
+            prompt += result.metadata["file_name"]
+            prompt += f"\n{self.fence[0]}\n"
+            prompt += result.page_content
+            prompt += f"{self.fence[1]}\n"
         return prompt
 
     def get_cur_message_text(self):
@@ -869,7 +857,7 @@ class Coder:
 
         return readonly_messages
 
-    def get_rag_file_messages(self, rag_query_results: list[QueryResult] | None):
+    def get_rag_file_messages(self, rag_query_results: list[Document] | None):
         rag_messages = []
 
         if rag_query_results is None:
@@ -1339,7 +1327,7 @@ class Coder:
 
         return prompt
 
-    def format_chat_chunks(self, rag_query_results: list[QueryResult] | None):
+    def format_chat_chunks(self, rag_query_results: list[Document] | None):
         self.choose_fence()
         main_sys = self.fmt_system_prompt(self.gpt_prompts.main_system)
         if self.main_model.system_prompt_prefix:
@@ -1397,7 +1385,7 @@ class Coder:
         chunks.repo = self.get_repo_messages()
         chunks.readonly_files = self.get_readonly_files_messages()
         chunks.rag_files = self.get_rag_file_messages(rag_query_results)
-        print(chunks.rag_files)
+
         chunks.chat_files = self.get_chat_files_messages()
 
         if self.gpt_prompts.system_reminder:
@@ -1451,7 +1439,7 @@ class Coder:
 
         return chunks
 
-    def format_messages(self, rag_query_results: list[QueryResult] | None):
+    def format_messages(self, rag_query_results: list[Document] | None):
         chunks = self.format_chat_chunks(rag_query_results)
         if self.add_cache_headers:
             chunks.add_cache_control_headers()
@@ -1547,9 +1535,12 @@ class Coder:
 
         rag_file_chunks = self.get_rag_files_chunks()
         if rag_file_chunks:
-            self.ragManager.embed_store_chunks(all_chunks=rag_file_chunks)
-            rag_query_results = self.ragManager.embed_retrieve_query(
-                query=inp, file_names=list(self.abs_rag_fnames)
+            if self.abs_rag_fnames is None:
+                raise Exception("No RAG files are present in the set!")
+
+            RagManager.embed_store_chunks(self.io, all_chunks=rag_file_chunks)
+            rag_query_results = RagManager.embed_retrieve_query(
+                query=inp, file_names=list(self.abs_rag_fnames), top_k_percentile=90
             )
         else:
             rag_query_results = None
