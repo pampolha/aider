@@ -106,7 +106,9 @@ class RagManager:
         )
 
     @staticmethod
-    def _retrieve_embedding(embedding: list[float], file_names: list[str]):
+    def _retrieve_embedding(
+        embedding: list[float], file_names: list[str]
+    ) -> QueryResult:
         return RagManager.chromadb_collection.func().query(
             query_embeddings=embedding,
             where={"file_name": {"$in": file_names}},  # type: ignore // this is correct, but the typing is bugged
@@ -134,7 +136,7 @@ class RagManager:
         return RagManager.voyage_rerank.func().compress_documents(documents, query)
 
     @staticmethod
-    def _get_stored_chunks(fname: str):
+    def _get_stored_chunks(fname: str) -> GetResult:
         return RagManager.chromadb_collection.func().get(where={"file_name": fname})
 
     @staticmethod
@@ -170,6 +172,14 @@ class RagManager:
             file_crc32_hash = crc32(content.encode("utf-8"))
 
             if file_crc32_hash == stored_crc32_hash:
+                stored_documents = [
+                    Document(content, metadata=chunk_metadata)
+                    for content, chunk_metadata in zip(
+                        stored_file_chunks.get("documents") or [],
+                        stored_file_chunks.get("metadatas") or [],
+                    )
+                ]
+                all_chunks.append(stored_documents)
                 continue
 
             chunker, chunker_name = RagManager._decide_chunker(fname)
