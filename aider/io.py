@@ -134,8 +134,20 @@ class AutoCompleter(Completer):
         if self.tokenized:
             return
         self.tokenized = True
+        
+        # Performance optimization for large file sets
+        if len(self.all_fnames) > 100:
+            # Skip tokenization for very large numbers of files to avoid input lag
+            self.tokenized = True
+            return
+            
+        # Limit number of files to process to avoid excessive tokenization time
+        process_fnames = self.all_fnames
+        if len(process_fnames) > 50:
+            # Only process a subset of files to maintain responsiveness
+            process_fnames = process_fnames[:50]
 
-        for fname in self.all_fnames:
+        for fname in process_fnames:
             try:
                 with open(fname, "r", encoding=self.encoding) as f:
                     content = f.read()
@@ -1188,6 +1200,24 @@ class InputOutput:
                 self.chat_history_file = None  # Disable further attempts to write
 
     def format_files_for_input(self, rel_fnames, rel_read_only_fnames, rel_rag_fnames):
+        # Optimization for large number of files
+        total_files = len(rel_fnames) + len(rel_read_only_fnames or []) + len(rel_rag_fnames or [])
+        
+        # For very large numbers of files, use a summary display
+        if total_files > 50:
+            rag_count = len(rel_rag_fnames or [])
+            read_only_count = len(rel_read_only_fnames or [])
+            editable_count = len([f for f in rel_fnames if f not in (rel_read_only_fnames or [])])
+            
+            summary = f"{editable_count} editable file(s)"
+            if read_only_count > 0:
+                summary += f", {read_only_count} read-only file(s)"
+            if rag_count > 0:
+                summary += f", {rag_count} RAG file(s)"
+            summary += " (use /ls to list all files)\n"
+            return summary
+            
+        # Original implementation for reasonable number of files
         if not self.pretty:
             read_only_files = []
             rag_files = []
