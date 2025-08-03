@@ -1534,6 +1534,7 @@ class Coder:
         self.io.llm_started()
 
         rag_file_chunks, changed_file_names = self.get_rag_files_chunks() or [None]
+        rag_query_results: list[Document] | None = None
         if rag_file_chunks and changed_file_names:
             if self.abs_rag_fnames is None:
                 raise Exception("No RAG files are present in the set!")
