@@ -134,13 +134,13 @@ class AutoCompleter(Completer):
         if self.tokenized:
             return
         self.tokenized = True
-        
+
         # Performance optimization for large file sets
         if len(self.all_fnames) > 100:
             # Skip tokenization for very large numbers of files to avoid input lag
             self.tokenized = True
             return
-            
+
         # Limit number of files to process to avoid excessive tokenization time
         process_fnames = self.all_fnames
         if len(process_fnames) > 50:
@@ -1201,22 +1201,34 @@ class InputOutput:
 
     def format_files_for_input(self, rel_fnames, rel_read_only_fnames, rel_rag_fnames):
         # Optimization for large number of files
-        total_files = len(rel_fnames) + len(rel_read_only_fnames or []) + len(rel_rag_fnames or [])
-        
+        total_files = (
+            len(rel_fnames)
+            + len(rel_read_only_fnames or [])
+            + len(rel_rag_fnames or [])
+        )
+
         # For very large numbers of files, use a summary display
         if total_files > 50:
             rag_count = len(rel_rag_fnames or [])
             read_only_count = len(rel_read_only_fnames or [])
-            editable_count = len([f for f in rel_fnames if f not in (rel_read_only_fnames or [])])
-            
-            summary = f"{editable_count} editable file(s)"
+            editable_count = len(
+                [
+                    f
+                    for f in rel_fnames
+                    if f not in ((rel_read_only_fnames + rel_rag_fnames) or [])
+                ]
+            )
+
+            summary = ""
+            if editable_count > 0:
+                summary += f"{editable_count} editable file(s)\n"
             if read_only_count > 0:
-                summary += f", {read_only_count} read-only file(s)"
+                summary += f"{read_only_count} read-only file(s)\n"
             if rag_count > 0:
-                summary += f", {rag_count} RAG file(s)"
-            summary += " (use /ls to list all files)\n"
+                summary += f"{rag_count} RAG file(s)\n"
+            summary += "(use /ls to list all files)\n"
             return summary
-            
+
         # Original implementation for reasonable number of files
         if not self.pretty:
             read_only_files = []
