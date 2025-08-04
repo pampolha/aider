@@ -1544,8 +1544,15 @@ class Coder:
                 all_chunks=rag_file_chunks,
                 changed_file_names=changed_file_names,
             )
+            top_k_percentile = getattr(
+                self,
+                "rag_top_k_percentile",
+                int(os.environ.get("AIDER_RAG_TOP_K_PERCENTILE", 95)),
+            )
             rag_query_results = RagManager.embed_retrieve_query(
-                query=inp, file_names=list(self.abs_rag_fnames), top_k_percentile=90
+                query=inp,
+                file_names=list(self.abs_rag_fnames),
+                top_k_percentile=top_k_percentile,
             )
 
         self.cur_messages += [

@@ -990,6 +990,18 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             )
         args.stream = False
 
+    rag_top_k_percentile = 95
+    if hasattr(args, 'rag_top_k_percentile') and args.rag_top_k_percentile is not None:
+        rag_top_k_percentile = args.rag_top_k_percentile
+    elif "AIDER_RAG_TOP_K_PERCENTILE" in os.environ:
+        try:
+            rag_top_k_percentile = int(os.environ["AIDER_RAG_TOP_K_PERCENTILE"])
+        except ValueError:
+            io.tool_warning(
+                "Invalid value for AIDER_RAG_TOP_K_PERCENTILE, using default of 95"
+            )
+            rag_top_k_percentile = 95
+
     if args.map_tokens is None:
         map_tokens = main_model.get_repo_map_tokens()
     else:
@@ -1033,6 +1045,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             auto_copy_context=args.copy_paste,
             auto_accept_architect=args.auto_accept_architect,
             add_gitignore_files=args.add_gitignore_files,
+            rag_top_k_percentile=rag_top_k_percentile,
         )
     except UnknownEditFormat as err:
         io.tool_error(str(err))
