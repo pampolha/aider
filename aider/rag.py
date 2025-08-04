@@ -33,15 +33,19 @@ class ASTChunker:
 
         if cursor.goto_first_child():
             current_node = getattr(cursor, "node")
-            node_text = getattr(current_node, "text")
-            grouped_node_type_chunks[current_node.type].append(bytes.decode(node_text))
-
-            while cursor.goto_next_sibling():
-                current_node = getattr(cursor, "node")
+            if "comment" not in current_node.type.lower():
                 node_text = getattr(current_node, "text")
                 grouped_node_type_chunks[current_node.type].append(
                     bytes.decode(node_text)
                 )
+
+            while cursor.goto_next_sibling():
+                current_node = getattr(cursor, "node")
+                if "comment" not in current_node.type.lower():
+                    node_text = getattr(current_node, "text")
+                    grouped_node_type_chunks[current_node.type].append(
+                        bytes.decode(node_text)
+                    )
 
         return grouped_node_type_chunks
 
