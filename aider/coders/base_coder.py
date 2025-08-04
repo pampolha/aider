@@ -356,6 +356,7 @@ class Coder:
         file_watcher=None,
         auto_copy_context=False,
         auto_accept_architect=True,
+        rag_top_k_percentile=95.0,
     ):
         # Fill in a dummy Analytics if needed, but it is never .enable()'d
         self.analytics = analytics if analytics is not None else Analytics()
@@ -410,6 +411,7 @@ class Coder:
         self.abs_read_only_fnames = set()
         self.abs_rag_fnames = set()
         self.add_gitignore_files = add_gitignore_files
+        self.rag_top_k_percentile = rag_top_k_percentile
 
         if cur_messages:
             self.cur_messages = cur_messages
