@@ -1537,9 +1537,17 @@ class Coder:
 
         rag_file_chunks, changed_file_names = self.get_rag_files_chunks() or [None]
         rag_query_results: list[Document] | None = None
+
+        debug_rag = os.environ.get("AIDER_RAG_DEBUG", None)
+
         if rag_file_chunks and changed_file_names:
             if self.abs_rag_fnames is None:
                 raise Exception("No RAG files are present in the set!")
+
+            if debug_rag:
+                self.io.tool_output(
+                    f"RAG Debug: Processing {len(changed_file_names)} changed files: {changed_file_names}"
+                )
 
             RagManager.embed_store_chunks(
                 self.io,
@@ -1551,11 +1559,25 @@ class Coder:
                 "rag_top_k_percentile",
                 int(os.environ.get("AIDER_RAG_TOP_K_PERCENTILE", 95)),
             )
+
+            if debug_rag:
+                self.io.tool_output(f"RAG Debug: Top K percentile: {top_k_percentile}")
+
             rag_query_results = RagManager.embed_retrieve_query(
                 query=inp,
                 file_names=list(self.abs_rag_fnames),
                 top_k_percentile=top_k_percentile,
             )
+
+            if debug_rag:
+                self.io.tool_output(
+                    f"RAG Debug: Retrieved {len(rag_query_results)} results."
+                )
+
+                for i, result in enumerate(rag_query_results):
+                    self.io.tool_output(
+                        f"RAG Debug: Result {i + 1}: {result.metadata} - {result.page_content[:100]}"
+                    )
 
         self.cur_messages += [
             dict(role="user", content=inp),
