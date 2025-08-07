@@ -137,9 +137,9 @@ class RagManager:
                     )
                 )
 
-        batch_size = 1000
+        batch_size = 100
         reranked_documents: list[Document] = []
-        for i in range(0, len(documents), 1000):
+        for i in range(0, len(documents), batch_size):
             batch = documents[i : i + batch_size]
             reranked_documents.extend(
                 (RagManager.voyage_rerank.func().compress_documents(batch, query))
