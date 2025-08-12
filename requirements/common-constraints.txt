@@ -348,7 +348,7 @@ playwright==1.54.0
     # via -r requirements/requirements-playwright.in
 pluggy==1.6.0
     # via pytest
-posthog==6.4.1
+posthog>=2.4.0,<6.0.0
     # via -r requirements/requirements.in
 pox==0.3.6
     # via pathos

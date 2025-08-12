@@ -19,7 +19,6 @@ litellm
 flake8
 importlib_resources
 pyperclip
-posthog
 mixpanel
 pexpect
 json5
@@ -54,3 +53,6 @@ scipy<1.16
 # https://github.com/pypa/twine/blob/6fbf880ee60915cf1666348c4bdd78a10415f2ac/twine/__init__.py#L40
 # Uses importlib-metadata
 importlib-metadata<8.0.0
+
+# chromadb dependency constraint
+posthog>=2.4.0,<6.0.0
