@@ -212,16 +212,20 @@ class RagManager:
         io: InputOutput, all_chunks: list[list[Document]], changed_file_names: list[str]
     ):
         for file_chunks in all_chunks:
-            fname = file_chunks[0].metadata["file_name"]
-            if fname in changed_file_names:
-                io.tool_output(f"Embedding and storing {fname}")
-                file_chunk_ids = RagManager._get_chunk_ids(file_chunks)
+            for i, chunk in enumerate(file_chunks):
+                fname = chunk.metadata["file_name"]
+                if fname in changed_file_names:
+                    if i == 0:
+                        io.tool_output(f"Embedding and storing {fname}")
+                    file_chunk_ids = RagManager._get_chunk_ids(file_chunks)
 
-                RagManager.chromadb_collection.func().delete(ids=file_chunk_ids)
+                    RagManager.chromadb_collection.func().delete(ids=file_chunk_ids)
 
-                texts = [doc.page_content for doc in file_chunks]
-                embeddings = RagManager.voyage_embeddings.func().embed_documents(texts)
-                RagManager._store_embeddings(file_chunks, embeddings)
+                    texts = [doc.page_content for doc in file_chunks]
+                    embeddings = RagManager.voyage_embeddings.func().embed_documents(
+                        texts
+                    )
+                    RagManager._store_embeddings(file_chunks, embeddings)
         return None
 
     @staticmethod
