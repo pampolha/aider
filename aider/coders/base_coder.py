@@ -1540,20 +1540,24 @@ class Coder:
 
         debug_rag = os.environ.get("AIDER_RAG_DEBUG", None)
 
-        if rag_file_chunks and changed_file_names:
+        if rag_file_chunks:
             if self.abs_rag_fnames is None:
                 raise Exception("No RAG files are present in the set!")
 
-            if debug_rag:
-                self.io.tool_output(
-                    f"RAG Debug: Processing {len(changed_file_names)} changed files: {changed_file_names}"
-                )
+            if changed_file_names:
+                if debug_rag:
+                    self.io.tool_output(
+                        f"RAG Debug: Processing {len(changed_file_names)} changed files: {changed_file_names}"
+                    )
 
-            RagManager.embed_store_chunks(
-                self.io,
-                all_chunks=rag_file_chunks,
-                changed_file_names=changed_file_names,
-            )
+                RagManager.embed_store_chunks(
+                    self.io,
+                    all_chunks=rag_file_chunks,
+                    changed_file_names=changed_file_names,
+                )
+            elif debug_rag:
+                self.io.tool_output("RAG Debug: No changed files")
+
             top_k_percentile = getattr(
                 self,
                 "rag_top_k_percentile",
