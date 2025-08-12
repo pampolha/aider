@@ -1576,7 +1576,7 @@ class Coder:
 
                 for i, result in enumerate(rag_query_results):
                     self.io.tool_output(
-                        f"RAG Debug: Result {i + 1}: {result.metadata} - {result.page_content[:100]}"
+                        f"RAG Debug: Result {i + 1}: {result.metadata} - {len(result.page_content)} characters"
                     )
 
         self.cur_messages += [
