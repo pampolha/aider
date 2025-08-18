@@ -990,7 +990,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             )
         args.stream = False
 
-    rag_top_k_percentile = 95
+    rag_top_k_percentile = 80
     if hasattr(args, 'rag_top_k_percentile') and args.rag_top_k_percentile is not None:
         rag_top_k_percentile = args.rag_top_k_percentile
     elif "AIDER_RAG_TOP_K_PERCENTILE" in os.environ:
@@ -998,9 +998,9 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             rag_top_k_percentile = int(os.environ["AIDER_RAG_TOP_K_PERCENTILE"])
         except ValueError:
             io.tool_warning(
-                "Invalid value for AIDER_RAG_TOP_K_PERCENTILE, using default of 95"
+                "Invalid value for AIDER_RAG_TOP_K_PERCENTILE, using default of 80"
             )
-            rag_top_k_percentile = 95
+            rag_top_k_percentile = 80
 
     if args.map_tokens is None:
         map_tokens = main_model.get_repo_map_tokens()

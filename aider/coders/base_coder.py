@@ -356,7 +356,7 @@ class Coder:
         file_watcher=None,
         auto_copy_context=False,
         auto_accept_architect=True,
-        rag_top_k_percentile=95.0,
+        rag_top_k_percentile=80.0,
     ):
         # Fill in a dummy Analytics if needed, but it is never .enable()'d
         self.analytics = analytics if analytics is not None else Analytics()
@@ -424,6 +424,8 @@ class Coder:
             self.done_messages = []
 
         self.io = io
+
+        self.RagManager = RagManager(self.io)
 
         self.shell_commands = []
 
@@ -724,7 +726,7 @@ class Coder:
         if self.abs_rag_fnames is None:
             return None
 
-        return RagManager.chunk_files(self.io, list(self.abs_rag_fnames))
+        return self.RagManager.chunk_files(list(self.abs_rag_fnames))
 
     def get_rag_files_content(self, rag_query_results: list[Document]):
         prompt = ""
@@ -1535,12 +1537,12 @@ class Coder:
         # Notify IO that LLM processing is starting
         self.io.llm_started()
 
-        rag_file_chunks, changed_file_names = self.get_rag_files_chunks() or [None]
+        rag_files_chunks, changed_file_names = self.get_rag_files_chunks() or [None]
         rag_query_results: list[Document] | None = None
 
         debug_rag = os.environ.get("AIDER_RAG_DEBUG", None)
 
-        if rag_file_chunks:
+        if rag_files_chunks:
             if self.abs_rag_fnames is None:
                 raise Exception("No RAG files are present in the set!")
 
@@ -1550,9 +1552,8 @@ class Coder:
                         f"RAG Debug: Processing {len(changed_file_names)} changed files: {changed_file_names}"
                     )
 
-                RagManager.embed_store_chunks(
-                    self.io,
-                    all_chunks=rag_file_chunks,
+                self.RagManager.embed_files(
+                    files_chunks_list=rag_files_chunks,
                     changed_file_names=changed_file_names,
                 )
             elif debug_rag:
@@ -1561,13 +1562,13 @@ class Coder:
             top_k_percentile = getattr(
                 self,
                 "rag_top_k_percentile",
-                int(os.environ.get("AIDER_RAG_TOP_K_PERCENTILE", 95)),
+                int(os.environ.get("AIDER_RAG_TOP_K_PERCENTILE", 80)),
             )
 
             if debug_rag:
                 self.io.tool_output(f"RAG Debug: Top K percentile: {top_k_percentile}")
 
-            rag_query_results = RagManager.embed_retrieve_query(
+            rag_query_results = self.RagManager.retrieve(
                 query=inp,
                 file_names=list(self.abs_rag_fnames),
                 top_k_percentile=top_k_percentile,

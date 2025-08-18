@@ -7,7 +7,6 @@ aiohappyeyeballs==2.6.1
 aiohttp==3.12.15
     # via
     #   -c requirements/common-constraints.txt
-    #   langchain-community
     #   litellm
     #   voyageai
 aiolimiter==1.2.1
@@ -81,10 +80,6 @@ configargparse==1.7.1
     # via
     #   -c requirements/common-constraints.txt
     #   -r requirements/requirements.in
-dataclasses-json==0.6.7
-    # via
-    #   -c requirements/common-constraints.txt
-    #   langchain-community
 diff-match-patch==20241021
     # via
     #   -c requirements/common-constraints.txt
@@ -164,10 +159,6 @@ googleapis-common-protos==1.70.0
     #   google-api-core
     #   grpcio-status
     #   opentelemetry-exporter-otlp-proto-grpc
-greenlet==3.2.3
-    # via
-    #   -c requirements/common-constraints.txt
-    #   sqlalchemy
 grep-ast==0.9.0
     # via
     #   -c requirements/common-constraints.txt
@@ -210,8 +201,6 @@ httpx==0.28.1
     #   langsmith
     #   litellm
     #   openai
-httpx-sse==0.4.1
-    # via langchain-community
 huggingface-hub==0.34.3
     # via
     #   -c requirements/common-constraints.txt
@@ -264,31 +253,19 @@ jsonschema-specifications==2025.4.1
     #   jsonschema
 kubernetes==33.1.0
     # via chromadb
-langchain==0.3.27
-    # via langchain-community
-langchain-community==0.3.27
-    # via langchain-experimental
 langchain-core==0.3.72
     # via
     #   -r requirements/requirements.in
-    #   langchain
-    #   langchain-community
-    #   langchain-experimental
     #   langchain-text-splitters
     #   langchain-voyageai
-langchain-experimental==0.3.4
-    # via -r requirements/requirements.in
 langchain-text-splitters==0.3.9
     # via
-    #   langchain
+    #   -r requirements/requirements.in
     #   voyageai
-langchain-voyageai==0.1.6
+langchain-voyageai==0.1.7
     # via -r requirements/requirements.in
 langsmith==0.4.9
-    # via
-    #   langchain
-    #   langchain-community
-    #   langchain-core
+    # via langchain-core
 litellm==1.75.0
     # via
     #   -c requirements/common-constraints.txt
@@ -301,10 +278,6 @@ markupsafe==3.0.2
     # via
     #   -c requirements/common-constraints.txt
     #   jinja2
-marshmallow==3.26.1
-    # via
-    #   -c requirements/common-constraints.txt
-    #   dataclasses-json
 mccabe==0.7.0
     # via
     #   -c requirements/common-constraints.txt
@@ -332,10 +305,6 @@ multidict==6.6.3
     #   -c requirements/common-constraints.txt
     #   aiohttp
     #   yarl
-mypy-extensions==1.1.0
-    # via
-    #   -c requirements/common-constraints.txt
-    #   typing-inspect
 networkx==3.4.2
     # via
     #   -c requirements/common-constraints.txt
@@ -344,7 +313,6 @@ numpy==1.26.4
     # via
     #   -c requirements/common-constraints.txt
     #   chromadb
-    #   langchain-community
     #   onnxruntime
     #   scipy
     #   soundfile
@@ -397,7 +365,6 @@ packaging==25.0
     #   huggingface-hub
     #   langchain-core
     #   langsmith
-    #   marshmallow
     #   onnxruntime
 pathspec==0.12.1
     # via
@@ -475,20 +442,16 @@ pydantic==2.11.7
     #   -c requirements/common-constraints.txt
     #   chromadb
     #   google-generativeai
-    #   langchain
     #   langchain-core
     #   langchain-voyageai
     #   langsmith
     #   litellm
     #   openai
-    #   pydantic-settings
     #   voyageai
 pydantic-core==2.33.2
     # via
     #   -c requirements/common-constraints.txt
     #   pydantic
-pydantic-settings==2.10.1
-    # via langchain-community
 pydub==0.25.1
     # via
     #   -c requirements/common-constraints.txt
@@ -528,7 +491,6 @@ python-dotenv==1.1.1
     # via
     #   -c requirements/common-constraints.txt
     #   litellm
-    #   pydantic-settings
     #   uvicorn
 pyyaml==6.0.2
     # via
@@ -537,8 +499,6 @@ pyyaml==6.0.2
     #   chromadb
     #   huggingface-hub
     #   kubernetes
-    #   langchain
-    #   langchain-community
     #   langchain-core
     #   uvicorn
 referencing==0.36.2
@@ -556,8 +516,6 @@ requests==2.32.4
     #   google-api-core
     #   huggingface-hub
     #   kubernetes
-    #   langchain
-    #   langchain-community
     #   langsmith
     #   mixpanel
     #   posthog
@@ -628,11 +586,6 @@ soupsieve==2.7
     # via
     #   -c requirements/common-constraints.txt
     #   beautifulsoup4
-sqlalchemy==2.0.42
-    # via
-    #   -c requirements/common-constraints.txt
-    #   langchain
-    #   langchain-community
 sympy==1.14.0
     # via
     #   -c requirements/common-constraints.txt
@@ -641,7 +594,6 @@ tenacity==9.1.2
     # via
     #   -c requirements/common-constraints.txt
     #   chromadb
-    #   langchain-community
     #   langchain-core
     #   voyageai
 tiktoken==0.10.0
@@ -703,19 +655,12 @@ typing-extensions==4.14.1
     #   pydantic
     #   pydantic-core
     #   referencing
-    #   sqlalchemy
     #   typer
-    #   typing-inspect
     #   typing-inspection
-typing-inspect==0.9.0
-    # via
-    #   -c requirements/common-constraints.txt
-    #   dataclasses-json
 typing-inspection==0.4.1
     # via
     #   -c requirements/common-constraints.txt
     #   pydantic
-    #   pydantic-settings
 uritemplate==4.2.0
     # via
     #   -c requirements/common-constraints.txt

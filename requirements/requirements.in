@@ -30,8 +30,7 @@ shtab
 oslex
 google-generativeai
 langchain_core
-langchain_voyageai
-langchain_experimental
+langchain_text_splitters
 chromadb
 
 # The proper dependency is networkx[default], but this brings
@@ -56,3 +55,6 @@ importlib-metadata<8.0.0
 
 # chromadb dependency constraint
 posthog>=2.4.0,<6.0.0
+
+# contextualized embedding support
+langchain_voyageai>=0.1.7

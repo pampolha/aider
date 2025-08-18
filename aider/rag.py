@@ -1,127 +1,75 @@
-from collections import defaultdict
-from copy import deepcopy
 from os import getcwd
 from posixpath import join as pathjoin
-from typing import List, Optional, cast
+from typing import cast
 from zlib import crc32
 
-from chromadb import Embeddings, GetResult, QueryResult, chromadb
-from grep_ast import filename_to_lang
+from chromadb import Embeddings, GetResult, Metadata, PersistentClient, QueryResult
 from langchain_core.documents import Document
-from langchain_experimental.text_splitter import SemanticChunker
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_voyageai import VoyageAIEmbeddings, VoyageAIRerank
-from langchain_voyageai.embeddings import DEFAULT_VOYAGE_3_BATCH_SIZE
 from numpy import percentile
-from tree_sitter import Language, Node, Parser, Tree
-from tree_sitter_language_pack import get_parser
 
 from aider.io import InputOutput
 
-from functools import cached_property
-
-
-class ASTChunker:
-    def __init__(self, parser: Parser):
-        self.parser = parser
-        self.language: Language = getattr(parser, "language")
-
-    def _chunk_tree(self, file_tree: Tree) -> dict[str, list[str]]:
-        grouped_node_type_chunks: dict[str, list[str]] = defaultdict(list[str])
-        cursor = file_tree.walk()
-        current_node: Node
-        node_text: bytes
-
-        if cursor.goto_first_child():
-            current_node = getattr(cursor, "node")
-            if "comment" not in current_node.type.lower():
-                node_text = getattr(current_node, "text")
-                grouped_node_type_chunks[current_node.type].append(
-                    bytes.decode(node_text)
-                )
-
-            while cursor.goto_next_sibling():
-                current_node = getattr(cursor, "node")
-                if "comment" not in current_node.type.lower():
-                    node_text = getattr(current_node, "text")
-                    grouped_node_type_chunks[current_node.type].append(
-                        bytes.decode(node_text)
-                    )
-
-        return grouped_node_type_chunks
-
-    def create_documents(
-        self, texts: List[str], metadatas: Optional[List[dict]] = None
-    ) -> List[Document]:
-        _metadatas = metadatas or [{}] * len(texts)
-        documents = []
-        for i, text in enumerate(texts):
-            start_index = 0
-            tree = self.parser.parse(bytes(text, "utf-8"))
-
-            for grammar_type, grouped_chunks in self._chunk_tree(tree).items():
-                metadata = deepcopy(_metadatas[i])
-                metadata["grammar_type"] = grammar_type
-                grouped_text = "\n".join(grouped_chunks)
-                metadata = metadata
-                new_doc = Document(page_content=grouped_text, metadata=metadata)
-                documents.append(new_doc)
-                start_index += len(grouped_chunks)
-        return documents
+CONTEXTUALIZED_EMBEDDINGS_MODEL = "voyage-context-3"
+RERANKER_MODEL = "rerank-2.5"
+CHROMADB_LOCAL_PATH = ".aider.chroma"
+CHROMADB_COLLECTION_NAME = "aider-rag"
+MAX_CONTEXTUALIZED_EMBEDDINGS_BATCH_SIZE = 1000
+RERANKER_MODEL_SAFE_BATCH_SIZE = 100
 
 
 class RagManager:
-    @cached_property
-    def voyage_embeddings():
-        return VoyageAIEmbeddings(
-            model="voyage-3.5", batch_size=DEFAULT_VOYAGE_3_BATCH_SIZE
+    def __init__(self, io: InputOutput):
+        self.embed_client = VoyageAIEmbeddings(
+            model=CONTEXTUALIZED_EMBEDDINGS_MODEL,
+            batch_size=MAX_CONTEXTUALIZED_EMBEDDINGS_BATCH_SIZE,
+        )
+        if self.embed_client._is_context_model() is False:
+            raise Exception(
+                f"The embedding model '{CONTEXTUALIZED_EMBEDDINGS_MODEL}' is not a valid contextualized embedding model."
+            )
+
+        self.rerank_client = VoyageAIRerank(model=RERANKER_MODEL)
+        self.chromadb_collection = PersistentClient(
+            path=pathjoin(getcwd(), CHROMADB_LOCAL_PATH)
+        ).get_or_create_collection(
+            name=CHROMADB_COLLECTION_NAME, embedding_function=None
+        )
+        self.io = io
+
+    def _get_file_chunk_ids(self, file_chunks: list[Document]) -> list[str]:
+        file_name: str = file_chunks[0].metadata["file_name"]
+        chunk_count = len(file_chunks)
+
+        return [f"{file_name}#chunk_{i + 1}/{chunk_count}" for i in range(chunk_count)]
+
+    def _store_file_chunks(
+        self, file_chunks: list[Document], file_chunks_embeddings: list[list[float]]
+    ):
+        ids = self._get_file_chunk_ids(file_chunks)
+        metadatas = [doc.metadata for doc in file_chunks]
+        for i, metadata in enumerate(metadatas):
+            metadata["chunk_number"] = ids[i].split("#")[1]
+
+        return self.chromadb_collection.upsert(
+            ids=ids,
+            documents=[doc.page_content for doc in file_chunks],
+            metadatas=cast(list[Metadata], metadatas),
+            embeddings=cast(Embeddings, file_chunks_embeddings),
         )
 
-    @cached_property
-    def voyage_rerank():
-        return VoyageAIRerank(model="rerank-2.5")
-
-    @cached_property
-    def chromadb_collection():
-        return chromadb.PersistentClient(
-            path=pathjoin(getcwd(), ".aider.chroma")
-        ).get_or_create_collection(name="aider-rag", embedding_function=None)
-
-    @staticmethod
-    def _get_chunk_ids(chunks: list[Document]) -> list[str]:
-        ids: list[str] = []
-
-        for i, doc in enumerate(chunks):
-            file_name: str = doc.metadata["file_name"]
-            grammar_type: str | None = doc.metadata.get("grammar_type")
-            if grammar_type is None:
-                ids.append(f"{file_name}#semantic_chunk_{i}")
-            else:
-                ids.append(f"{file_name}#{grammar_type}")
-
-        return ids
-
-    @staticmethod
-    def _store_embeddings(chunks: list[Document], embeddings: list[list[float]]):
-        return RagManager.chromadb_collection.func().upsert(
-            ids=RagManager._get_chunk_ids(chunks),
-            documents=[doc.page_content for doc in chunks],
-            metadatas=[doc.metadata for doc in chunks],
-            embeddings=cast(Embeddings, embeddings),
-        )
-
-    @staticmethod
     def _retrieve_embedding(
-        embedding: list[float], file_names: list[str]
+        self, embedding: list[float], file_names: list[str]
     ) -> QueryResult:
-        return RagManager.chromadb_collection.func().query(
+        return self.chromadb_collection.query(
             query_embeddings=embedding,
             where={"file_name": {"$in": file_names}},  # type: ignore // this is correct, but the typing is bugged
             n_results=len(file_names)
             * 10,  # the retrieval will be reranked, so it's fine if there are a lot of results
         )
 
-    @staticmethod
-    def _rerank_retrieved_results(query: str, results: QueryResult):
+    def _rerank_retrieved_results(self, query: str, results: QueryResult):
         document_contents = results.get("documents")
         document_metadatas = results.get("metadatas")
         if not document_contents or not document_metadatas:
@@ -137,50 +85,36 @@ class RagManager:
                     )
                 )
 
-        batch_size = 100
         reranked_documents: list[Document] = []
-        for i in range(0, len(documents), batch_size):
-            batch = documents[i : i + batch_size]
+        for i in range(0, len(documents), RERANKER_MODEL_SAFE_BATCH_SIZE):
+            batch = documents[i : i + RERANKER_MODEL_SAFE_BATCH_SIZE]
             reranked_documents.extend(
-                (RagManager.voyage_rerank.func().compress_documents(batch, query))
+                (self.rerank_client.compress_documents(batch, query))
             )
         return reranked_documents
 
-    @staticmethod
-    def _get_stored_chunks(fname: str) -> GetResult:
-        return RagManager.chromadb_collection.func().get(where={"file_name": fname})
+    def _get_stored_chunks(self, fname: str) -> GetResult:
+        return self.chromadb_collection.get(where={"file_name": fname})
 
-    @staticmethod
-    def _get_stored_metadata(stored_chunk: GetResult, metadata_key: str):
+    def _get_stored_metadata(self, stored_chunk: GetResult, metadata_key: str):
         stored_chunk_metadatas = stored_chunk.get("metadatas")
         if stored_chunk_metadatas is None or len(stored_chunk_metadatas) == 0:
             return None
         return stored_chunk_metadatas[0].get(metadata_key)
 
-    @staticmethod
-    def _decide_chunker(fname: str):
-        detected_language = filename_to_lang(fname)
-        try:
-            supported_parser = get_parser(detected_language)  # type: ignore
-            return (ASTChunker(supported_parser), "ASTChunker")
-        except Exception:
-            pass
-        return (SemanticChunker(RagManager.voyage_embeddings.func()), "SemanticChunker")
-
-    @staticmethod
     def chunk_files(
-        io: InputOutput, file_names: list[str]
+        self, file_names: list[str]
     ) -> tuple[list[list[Document]], list[str]]:
         all_chunks: list[list[Document]] = []
         changed_file_names: list[str] = []
         for fname in file_names:
-            content = io.read_text(fname)
+            content = self.io.read_text(fname)
             if not content:
-                io.tool_output(f"File {fname} is empty.")
+                self.io.tool_output(f"File {fname} is empty.")
                 continue
 
-            stored_file_chunks = RagManager._get_stored_chunks(fname)
-            stored_crc32_hash = RagManager._get_stored_metadata(
+            stored_file_chunks = self._get_stored_chunks(fname)
+            stored_crc32_hash = self._get_stored_metadata(
                 stored_file_chunks, "crc32_hash"
             )
             file_crc32_hash = crc32(content.encode("utf-8"))
@@ -196,48 +130,39 @@ class RagManager:
                 all_chunks.append(stored_documents)
                 continue
 
-            chunker, chunker_name = RagManager._decide_chunker(fname)
-            io.tool_output(f"Chunking {fname} with {chunker_name}")
+            self.io.tool_output(f"Chunking {fname}")
 
-            file_chunks = chunker.create_documents(
-                [content], [{"file_name": fname, "crc32_hash": file_crc32_hash}]
+            file_chunks = RecursiveCharacterTextSplitter(
+                separators=["\n"]
+            ).create_documents(
+                [content],
+                [{"file_name": fname, "crc32_hash": file_crc32_hash}],
             )
             all_chunks.append(file_chunks)
             changed_file_names.append(fname)
 
         return all_chunks, changed_file_names
 
-    @staticmethod
-    def embed_store_chunks(
-        io: InputOutput, all_chunks: list[list[Document]], changed_file_names: list[str]
+    def embed_files(
+        self, files_chunks_list: list[list[Document]], changed_file_names: list[str]
     ):
-        for file_chunks in all_chunks:
-            for i, chunk in enumerate(file_chunks):
-                fname = chunk.metadata["file_name"]
-                if fname in changed_file_names:
-                    if i == 0:
-                        io.tool_output(f"Embedding and storing {fname}")
-                    file_chunk_ids = RagManager._get_chunk_ids(file_chunks)
+        for file_chunks in files_chunks_list:
+            fname = file_chunks[0].metadata["file_name"]
+            if fname in changed_file_names:
+                self.io.tool_output(f"Embedding and storing {fname}")
+                file_chunk_ids = self._get_file_chunk_ids(file_chunks)
+                self.chromadb_collection.delete(ids=file_chunk_ids)
+                texts = [doc.page_content for doc in file_chunks]
+                embeddings = self.embed_client.embed_documents(texts)
+                self._store_file_chunks(file_chunks, embeddings)
 
-                    RagManager.chromadb_collection.func().delete(ids=file_chunk_ids)
-
-                    texts = [doc.page_content for doc in file_chunks]
-                    embeddings = RagManager.voyage_embeddings.func().embed_documents(
-                        texts
-                    )
-                    RagManager._store_embeddings(file_chunks, embeddings)
         return None
 
-    @staticmethod
-    def embed_retrieve_query(
-        query: str, file_names: list[str], top_k_percentile: float
-    ):
-        embedded_query = RagManager.voyage_embeddings.func().embed_query(query)
-        retrieved_results = RagManager._retrieve_embedding(embedded_query, file_names)
+    def retrieve(self, query: str, file_names: list[str], top_k_percentile: float):
+        embedded_query = self.embed_client.embed_query(query)
+        retrieved_results = self._retrieve_embedding(embedded_query, file_names)
 
-        reranked_results = RagManager._rerank_retrieved_results(
-            query, retrieved_results
-        )
+        reranked_results = self._rerank_retrieved_results(query, retrieved_results)
 
         relevance_score_percentile = percentile(
             [result.metadata["relevance_score"] for result in reranked_results],
